@@ -1,0 +1,20 @@
+{
+    "require": {
+        "cycle/orm": "^2.8",
+        "cycle/annotated": "^4.0",
+        "tracy/tracy": "^2.10",
+        "phpmailer/phpmailer": "^6.9",
+        "intervention/image": "^3.8",
+        "twig/twig": "^3.0",
+        "nesbot/carbon": "^3.7",
+        "cycle/migrations": "^4.2",
+        "cycle/schema-migrations-generator": "^2.2",
+        "twilio/sdk": "^8.3",
+        "mpdf/mpdf": "^8.2",
+        "guzzlehttp/guzzle": "7.9",
+        "geoip2/geoip2": "^3.2"
+    },
+    "autoload": {
+
+    }
+}

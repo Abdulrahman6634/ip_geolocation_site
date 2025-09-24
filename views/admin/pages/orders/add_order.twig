@@ -1,0 +1,361 @@
+{% extends 'admin/page-master.twig' %} {% block header %}
+<div class="geex-content__header__content">
+    <h2 class="geex-content__header__title">Place Order</h2>
+    <p class="geex-content__header__subtitle">Use the form below to place an order</p>
+</div>
+{% endblock %} {% block content %}
+
+<style>
+    .geex-content__form__single__box {
+        width: 100%;
+        max-width: 600px;1
+    }
+    .input-wrapper {
+        position: relative;
+    }
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        padding: 10px;
+    }
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    }
+    .input-label {
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #333;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875rem;
+    }
+</style>
+
+<div class="geex-content__section">
+    <div class="geex-content__form__single d-flex flex-column align-items-center">
+        <form id="orderForm" class="needs-validation w-100" novalidate>
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+
+            <!-- Customers -->
+            <div class="geex-content__form__single__box mb-20">
+                <div class="input-wrapper">
+                    <label for="user_id" class="input-label">Customers</label>
+                    <select id="user_id" name="user_id" class="form-control p-3" required>
+                        <option value="">Select a customer</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback">Please select a customer.</div>
+                </div>
+            </div>
+
+            <!-- Product Categories -->
+            <div class="geex-content__form__single__box mb-20">
+                <div class="input-wrapper">
+                    <label for="product_category" class="input-label">Product Categories</label>
+                    <select id="product_category" class="form-control p-3">
+                        <option value="">Select a category</option>
+                        {% for category in product_categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Products -->
+            <div class="geex-content__form__single__box mb-20">
+                <div class="input-wrapper">
+                    <label for="product_id" class="input-label">Products</label>
+                    <select id="product_id" class="form-control p-3">
+                        <option value="">Select a product</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}" data-price="{{product.price}}">{{ product.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback">Please select a product.</div>
+                </div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="geex-content__form__single__box mb-20">
+                <div class="input-wrapper">
+                    <label for="quantity" class="input-label">Quantity</label>
+                    <input type="number" id="quantity" class="form-control p-3" placeholder="Enter quantity" min="1" value="1">
+                    <div class="invalid-feedback">Please enter a valid quantity (minimum 1).</div>
+                </div>
+            </div>
+
+            <!-- Price -->
+            <div class="geex-content__form__single__box mb-20">
+                <div class="input-wrapper">
+                    <label for="price" class="input-label">Price</label>
+				<div class="input-icon">
+					<i class="uil uil-dollar-alt"></i>
+					<input placeholder="@ Insert amount"  class="form-control" id="price" name="price" />
+				</div>
+                </div>
+            </div>
+
+            <!-- Add Item Button -->
+            <div class="geex-content__form__single__box mb-20 text-center p-3">
+                <button type="button" id="add_item" class="btn btn-secondary">Add Product</button>
+            </div>
+
+            <!-- Selected Products Table -->
+            <table id="selected_products" class="table mt-3">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <!-- Total -->
+            <div class="mb-3 text-right">Total: $<span id="total_amount">0.00</span></div>
+
+            <!-- Address -->
+            <div class="geex-content__form__single__box mb-20">
+                <div class="input-wrapper">
+                    <label for="address" class="input-label">Address</label>
+                    <input type="text" id="address" name="address" class="form-control p-3" placeholder="Enter delivery address" required>
+                    <div class="invalid-feedback">Please enter a delivery address.</div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="geex-content__form__single__box text-center pt-3">
+                <button type="submit" id="submitOrder" class="btn btn-primary">Place Order</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 
+
+{% block script %}
+<script>
+    $(document).ready(function () {
+        // Update total function
+        function updateTotal() {
+            let total = 0;
+            $('.subtotal').each(function () {
+                total += parseFloat($(this).text()) || 0;
+            });
+            $('#total_amount').text(total.toFixed(2));
+            return total;
+        }
+
+        // Add item button
+        $('#add_item').on('click', function () {
+            const productId = $('#product_id').val();
+            const productName = $('#product_id option:selected').text();
+            let qty = parseInt($('#quantity').val());
+            const price = parseFloat($('#price').val()) || 0;
+
+            if (!productId || qty < 1 || isNaN(qty) || price <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Input',
+                    text: 'Please select a product, enter a valid quantity, and ensure price is set.'
+                });
+                return;
+            }
+
+            let subtotal = (price * qty).toFixed(2);
+            let existing = $(`#selected_products tbody tr[data-product-id="${productId}"]`);
+
+            if (existing.length) {
+                let curQty = parseInt(existing.find('.item-qty').val());
+                existing.find('.item-qty').val(curQty + qty);
+                existing.find('.item-qty').change(); // Trigger update
+            } else {
+                let row = `
+                    <tr data-product-id="${productId}" data-price="${price}">
+                        <td>${productName}</td>
+                        <td><input type="number" class="item-qty form-control" value="${qty}" min="1"></td>
+                        <td>${price.toFixed(2)}</td>
+                        <td class="subtotal">${subtotal}</td>
+                        <td><button class="btn btn-danger btn-sm remove-item">Remove</button></td>
+                    </tr>
+                `;
+                $('#selected_products tbody').append(row);
+                updateTotal();
+            }
+
+            // Reset fields
+            $('#product_id').val('');
+            $('#quantity').val(1);
+            $('#price').val('');
+        });
+
+        // Quantity change in table
+        $(document).on('change', '.item-qty', function () {
+            let qty = parseInt($(this).val());
+            if (qty < 1 || isNaN(qty)) {
+                $(this).val(1);
+                qty = 1;
+            }
+            let row = $(this).closest('tr');
+            let price = parseFloat(row.data('price'));
+            let sub = (price * qty).toFixed(2);
+            row.find('.subtotal').text(sub);
+            updateTotal();
+        });
+
+        // Remove item
+        $(document).on('click', '.remove-item', function () {
+            $(this).closest('tr').remove();
+            updateTotal();
+        });
+
+        // Bootstrap form validation and submit
+        const form = document.getElementById('orderForm');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            if (!form.checkValidity()) {
+                event.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+
+            let pids = [];
+            let qtys = [];
+            let prices = [];
+            
+            // Collect product IDs, quantities, and prices
+            $('#selected_products tbody tr').each(function () {
+                pids.push($(this).data('product-id'));
+                qtys.push($(this).find('.item-qty').val());
+                prices.push($(this).data('price'));
+            });
+
+            if (pids.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No Products',
+                    text: 'Please add at least one product.'
+                });
+                return;
+            }
+
+            // Calculate total
+            const total = updateTotal();
+            
+            const formData = new FormData(form);
+            formData.append('product_id', pids.join(','));
+            formData.append('quantities', qtys.join(','));
+            formData.append('prices', prices.join(','));
+            formData.append('total_amount', total);
+
+            $.ajax({
+                url: '/admin/add-order',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: res.message,
+                        }).then(() => {
+                            form.reset();
+                            form.classList.remove('was-validated');
+                            $('#price').val('');
+                            $('#selected_products tbody').empty();
+                            $('#total_amount').text('0.00');
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            text: res.message || 'Failed to place order.'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: xhr.responseJSON?.message || 'Request failed. Please try again.'
+                    });
+                }
+            });
+        });
+
+        // Auto-populate price based on selected product
+        $('#product_id').on('change', function () {
+            const selectedOption = $(this).find('option:selected');
+            const price = selectedOption.data('price') || 0;
+            $('#price').val(price.toFixed(2));
+        });
+
+        // Filter products by category
+        $('#product_category').on('change', function () {
+            const categoryId = $(this).val();
+            $('#product_id').empty().append('<option value="">Select a product</option>');
+            if (!categoryId) return;
+            $.ajax({
+                url: '/admin/api/products-by-category',
+                type: 'GET',
+                data: { category_id: categoryId },
+                dataType: 'json',
+                success: function (response) {
+                    console.log('Products response:', response);
+                    if (response.status === 200) {
+                        if (response.data.length === 0) {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'No Products',
+                                text: 'No products found for this category.'
+                            });
+                            return;
+                        }
+                        const seen = new Set();
+                        response.data.forEach(product => {
+                            if (!seen.has(product.name)) {
+                                $('#product_id').append(
+                                    `<option value="${product.id}" data-price="${product.price}">${product.name}</option>`
+                                );
+                                seen.add(product.name);
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || 'Failed to load products.'
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: 'Failed to fetch products.'
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

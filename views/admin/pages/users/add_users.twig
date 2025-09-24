@@ -1,0 +1,255 @@
+{% extends 'admin/page-master.twig' %}
+
+{% block header %}
+<div class="geex-content__header__content">
+    <h2 class="geex-content__header__title">Add Users</h2>
+    <p class="geex-content__header__subtitle">Use the form below to add a new users</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+    .image-box {
+        width: 200px;
+        height: 200px;
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden;
+        background-color: #f9f9f9;
+        text-align: center;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .image-box img {
+        max-width: 100%;
+        max-height: 100%;
+        display: none;
+        object-fit: cover;
+    }
+    .image-options {
+        margin-top: 10px;
+        display: none;
+        gap: 10px;
+    }
+    .image-options button {
+        border: none;
+        background-color: #f1f1f1;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    /* Modal styling */
+    #imageModal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        justify-content: center;
+        align-items: center;
+    }
+
+    #modalImage {
+        max-width: 90vw;
+        max-height: 90vh;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+</style>
+
+<div class="geex-content__section">
+    <div class="geex-content__form__single d-flex flex-column align-items-center">
+
+        <!-- Product Image -->
+        <div class="geex-content__form__single__box mb-20 w-50 text-center">
+            <label class="input-label">User Image</label>
+            <div class="image-box" id="imageBox">
+                <img id="imagePreview" src="" alt="Preview">
+                <div id="imagePlaceholder">
+                    <img src="{{ env.APP_URL ~ 'assets/admin/assets/img/logo-lite.svg' }}" alt="Placeholder" style="height: 50px; opacity: 0.4;"><br>
+                    <small>Select Product Image</small><br>
+                    <button type="button" id="selectImageBtn" class="btn btn-outline-primary btn-sm mt-2">Choose Image</button>
+                </div>
+                <input type="file" id="image" accept="image/*" hidden />
+            </div>
+
+            <div class="image-options d-flex justify-content-center" id="imageOptions">
+                <button id="viewBtn">👁 View</button>
+                <button id="changeBtn">🔄 Change</button>
+                <button id="removeBtn">❌ Remove</button>
+            </div>
+        </div>
+
+        <!-- Product Name -->
+        <div class="geex-content__form__single__box mb-20 w-50">
+            <div class="input-wrapper">
+                <label for="first_name" class="input-label">First Name</label>
+                <input type="text" id="first_name" class="form-control" placeholder="Enter product name" />
+            </div>
+        </div>
+
+        <div class="geex-content__form__single__box mb-20 w-50">
+            <div class="input-wrapper">
+                <label for="last_name" class="input-label">Last Name</label>
+                <input type="text" id="last_name" class="form-control" placeholder="Enter product name" />
+            </div>
+        </div>
+
+        <!-- Stock -->
+        <div class="geex-content__form__single__box mb-20 w-50">
+            <div class="input-wrapper">
+                <label for="email" class="input-label">Email</label>
+                <input type="email" id="email" class="form-control" placeholder="Enter stock quantity" min="0" />
+            </div>
+        </div>
+
+        <!-- Stock -->
+        <div class="geex-content__form__single__box mb-20 w-50">
+            <div class="input-wrapper">
+                <label for="password" class="input-label">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter stock quantity" min="0" />
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="geex-content__form__single__box w-50 text-center pt-3">
+            <button type="button" id="addUser" class="btn btn-primary">Add Users</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal">
+    <img id="modalImage" src="" />
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function () {
+    const imageInput = $('#image');
+    const imagePreview = $('#imagePreview');
+    const imagePlaceholder = $('#imagePlaceholder');
+    const imageOptions = $('#imageOptions');
+
+    // Trigger file input when clicking button
+    $('#selectImageBtn, #changeBtn').click(function () {
+        imageInput.trigger('click');
+    });
+
+    // Show preview when file selected
+    imageInput.on('change', function () {
+        const file = this.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imagePreview.attr('src', e.target.result).show();
+                imagePlaceholder.hide();
+                imageOptions.show();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            Swal.fire({ icon: 'error', title: 'Invalid File', text: 'Please upload a valid image file.' });
+        }
+    });
+
+    // View image in modal
+    $('#viewBtn').click(function () {
+        const src = imagePreview.attr('src');
+        if (src) {
+            $('#modalImage').attr('src', src);
+            $('#imageModal').fadeIn(200).css('display', 'flex');
+        }
+    });
+
+    // Close modal when clicking outside the image
+    $('#imageModal').click(function (e) {
+        if (e.target.id === 'imageModal') {
+            $('#imageModal').fadeOut(200);
+        }
+    });
+
+    // Remove image
+    $('#removeBtn').click(function () {
+        imageInput.val('');
+        imagePreview.hide().attr('src', '');
+        imagePlaceholder.show();
+        imageOptions.hide();
+    });
+
+    // Submit form
+    $('#addUser').click(function (event) {
+        event.preventDefault();
+
+        const first_name = $('#first_name').val().trim();
+        const last_name = $('#last_name').val().trim();
+        const email = $('#email').val().trim();
+        const password = $('#password').val().trim();
+        const image = imageInput[0].files[0];
+
+        if (!first_name || !last_name || !email || !password) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Product name, price, and stock are required.' });
+            return;
+        }
+
+        if (!image) {
+            Swal.fire({ icon: 'error', title: 'Image Required', text: 'Please upload a product image.' });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('first_name', first_name);
+        formData.append('last_name', last_name);
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('image', image);
+
+        $.ajax({
+            url: '/admin/profile',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                try {
+                    const res = JSON.parse(response);
+                    if (res.status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: res.message,
+                        }).then(() => {
+                            $('#name, #price, #stock, #description').val('');
+                            imageInput.val('');
+                            imagePreview.hide().attr('src', '');
+                            imagePlaceholder.show();
+                            imageOptions.hide();
+                        });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Failed', text: res.message });
+                    }
+                } catch {
+                    Swal.fire({ icon: 'error', title: 'Unexpected Error', text: 'Could not process server response.' });
+                }
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: xhr.responseJSON?.message || 'Request failed. Please try again.'
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

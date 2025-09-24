@@ -1,0 +1,87 @@
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+require_once 'config/env.php';
+
+use Cycle\Migrations\Config\MigrationConfig;
+use Cycle\Migrations\Migrator;
+use Cycle\Migrations\FileRepository;
+use Cycle\Migrations\Capsule;
+
+// The $dbal variable is already initialized in env.php
+$config = new MigrationConfig([
+    'directory' => 'migrations/',
+    'table' => 'migrations',
+    'safe' => true,
+]);
+
+$migrator = new Migrator($config, $dbal, new FileRepository($config));
+$migrator->configure();
+
+$command = $argv[1] ?? null;
+$param = $argv[2] ?? null;
+
+switch ($command) {
+    case 'create':
+        if (!$param) {
+            echo "Please provide a migration name.\n";
+            exit(1);
+        }
+        createMigrationFile($param);
+        echo "Migration created successfully.\n";
+        break;
+
+    case 'migrate':
+        $capsule = new Capsule($dbal->database('default'));
+        // Run all migrations
+        $migrator->run($capsule);
+        echo "All pending migrations ran successfully.\n";
+        break;
+
+    case 'rollback':
+        $migrator->rollback();
+        echo "Last migration rolled back successfully.\n";
+        break;
+
+    case 'seed':
+        require_once 'DatabaseSeeder.php';
+        $seeder = new DatabaseSeeder();
+        //$seeder->run();
+        //echo "Database seeding completed successfully.\n";
+        break;
+
+    default:
+        echo "Unknown command. 'create', 'migrate', 'rollback', or 'seed'.\n";
+        exit(1);
+}
+
+function createMigrationFile($name) {
+    // Generate a timestamp in the correct format used by FileRepository
+    $timestamp = date('Ymd.His'); // Format should be 'Ymd.His'
+    // Ensure the migration name is sanitized and formatted
+    $sanitizedName = preg_replace('/[^a-zA-Z0-9_]/', '_', strtolower($name));
+    $className = ucfirst($sanitizedName) . 'Migration';
+    $fileName = 'migrations/' . $timestamp . '_' . '0_' . $sanitizedName . '.php'; // Include a chunk ID
+
+    // Define the migration template
+    $template = file_get_contents(__DIR__ . '/MigrationTemplate.php');
+    if ($template === false) {
+        echo "Failed to read migration template.\n";
+        exit(1);
+    }
+    $template = str_replace(['{MigrationClassName}', '{TableName}'], [$className, $sanitizedName], $template);
+
+    // Create the migration file
+    if (file_put_contents($fileName, $template) === false) {
+        echo "Failed to create migration file: $fileName\n";
+        exit(1);
+    }
+    echo "Migration file created: $fileName\n";
+}
+
+// Example usage:
+// php zotec create create_users_table
+// php zotec migrate
+// php zotec rollback
+// php zotec seed

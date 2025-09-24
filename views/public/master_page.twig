@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ env.App_URL }}assets/public/favicon/favicon.ico">
+    <title>IP Geolocation API Dashboard</title>
+
+    <script>
+  (function() {
+    try {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (_) {}
+  })();
+</script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #0ea5e9;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+        
+        .nav-link.active {
+            color: #0ea5e9;
+        }
+        
+        .nav-link-mobile.active {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        
+        .dark .nav-link-mobile.active {
+            background-color: #1e3a8a;
+            color: #bfdbfe;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .dark .card {
+            background: #1f2937;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(120deg, #0ea5e9 0%, #3b82f6 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(120deg, #0284c7 0%, #2563eb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+        }
+        
+        .sidebar-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .theme-toggle {
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle-handler {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white dark:bg-gray-800 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+            <a href="/" class="flex items-center space-x-2">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center ">
+                    <img src="{{ env.App_URL }}assets/public/favicon/web-app-manifest-192x192.png" 
+                        alt="IPlytic Logo" 
+                    class="w-9 h-9 rounded-lg">
+                </div>
+                <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">IPlytic</span>
+            </a>
+            <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+                <!-- Avatar with dropdown menu -->
+                <div class="relative">
+                    <button id="avatar-button" class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600">
+                        <span class="sr-only">Open user menu</span>
+                        <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name={{ loginName }}&background=0D8ABC&color=fff" alt="user photo">
+                    </button>
+                    
+                    <!-- Dropdown menu -->
+                    <div id="avatar-menu" class="hidden absolute right-0 mt-2 w-72 z-50 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 rounded-t-lg">
+                            <div class="flex items-center">
+                                <img class="w-10 h-10 rounded-full mr-3" src="https://ui-avatars.com/api/?name={{ loginName }}&background=0D8ABC&color=fff" alt="user photo">
+                                <div>
+                                    <span class="block text-sm font-medium text-gray-900 dark:text-white">{{ loginName }}</span>
+                                    <span class="block text-sm text-gray-500 dark:text-gray-400 overflow-x-auto whitespace-nowrap max-w-[200px]" style="-ms-overflow-style: none; scrollbar-width: none; overflow-y: hidden;">
+                                        {{ loginEmail }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="py-2" aria-labelledby="avatar-button">
+                            <li>
+                                <a href="/profile" class="flex items-center px-5 py-3 text-sm text-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white transition-colors duration-150">
+                                    <i class="fa-regular fa-user mr-3 w-5 text-center"></i> Account
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/settings" class="flex items-center px-5 py-3 text-sm text-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white transition-colors duration-150">
+                                    <i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings
+                                </a>
+                            </li>
+                            <li class="border-t border-gray-100 dark:border-gray-700">
+                                <div class="flex items-center justify-between px-5 py-3">
+                                    <span class="text-sm text-gray-700 dark:text-gray-200">Appearance</span>
+                                    <button id="theme-toggle" type="button" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-gray-200 bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none dark:border-gray-600 dark:bg-gray-700 theme-toggle">
+                                        <span class="sr-only">Toggle theme</span>
+                                        <span id="theme-toggle-handler" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-5 theme-toggle-handler"></span>
+                                    </button>
+                                </div>
+                            </li>
+                            <li class="border-t border-gray-100 dark:border-gray-700">
+                                <a href="/logout" class="flex items-center px-5 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-150">
+                                    <i class="fa-solid fa-arrow-right-from-bracket mr-3 w-5 text-center"></i> Log out
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <button id="menu-toggle" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-sticky" aria-expanded="false">
+                    <span class="sr-only">Open main menu</span>
+                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
+                <ul class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-800 dark:border-gray-700">
+                    <li>
+                        <a href="/dashboard" class="nav-link block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-primary-600 md:p-0 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/subscription" class="nav-link block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-primary-600 md:p-0 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Subscription</a>
+                    </li>
+                    <li>
+                        <a href="/api_key" class="nav-link block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-primary-600 md:p-0 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">API Keys</a>
+                    </li>
+                    <li>
+                        <a href="/usage" class="nav-link block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-primary-600 md:p-0 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Usage</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar -->
+    <div id="mobile-sidebar" class="hidden fixed top-0 left-0 h-full w-3/4 max-w-xs z-40 bg-white dark:bg-gray-800 shadow-xl dark:shadow-gray-900 md:hidden">
+        <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
+                    <i class="fa-solid fa-location-dot text-white"></i>
+                </div>
+                <span class="ml-2 text-xl font-semibold dark:text-white">IPlytic</span>
+            </div>
+            <button id="close-sidebar" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center">
+            <img class="w-10 h-10 rounded-full mr-3" src="https://ui-avatars.com/api/?name={{ loginName }}&background=0D8ABC&color=fff" alt="user photo">
+            <div>
+                <span class="block text-sm font-medium text-gray-900 dark:text-white">{{ loginName }}</span>
+                <span class="block text-sm text-gray-500 dark:text-gray-400">{{ loginEmail }}</span>
+            </div>
+        </div>
+        <ul class="py-4">
+            <li>
+                <a href="/dashboard" class="nav-link-mobile flex items-center px-5 py-3 text-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white">
+                    <i class="fa-solid fa-gauge-high mr-3 w-6 text-center"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/subscription" class="nav-link-mobile flex items-center px-5 py-3 text-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white">
+                    <i class="fa-solid fa-crown mr-3 w-6 text-center"></i> Subscription
+                </a>
+            </li>
+            <li>
+                <a href="/api_key" class="nav-link-mobile flex items-center px-5 py-3 text-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white">
+                    <i class="fa-solid fa-key mr-3 w-6 text-center"></i> API Keys
+                </a>
+            </li>
+            <li>
+                <a href="/usage" class="nav-link-mobile flex items-center px-5 py-3 text-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white">
+                    <i class="fa-solid fa-chart-pie mr-3 w-6 text-center"></i> Usage
+                </a>
+            </li>
+            <li>
+                <a href="/profile" class="flex items-center px-5 py-3 text-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white">
+                    <i class="fa-regular fa-user mr-3 w-6 text-center"></i> Account
+                </a>
+            </li>
+            <li>
+                <a href="/settings" class="flex items-center px-5 py-3 text-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white">
+                    <i class="fa-solid fa-gear mr-3 w-6 text-center"></i> Settings
+                </a>
+            </li>
+            <li class="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
+                <div class="flex items-center justify-between px-5 py-3">
+                    <span class="text-gray-700 dark:text-gray-200">Dark Mode</span>
+                    <button id="mobile-theme-toggle" type="button" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-gray-200 bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none dark:border-gray-600 dark:bg-gray-700 theme-toggle">
+                        <span class="sr-only">Toggle theme</span>
+                        <span id="mobile-theme-toggle-handler" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-5 theme-toggle-handler"></span>
+                    </button>
+                </div>
+            </li>
+            <li class="border-t border-gray-200 dark:border-gray-700">
+                <a href="/logout" class="flex items-center px-5 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 dark:text-red-400 dark:hover:text-red-300">
+                    <i class="fa-solid fa-arrow-right-from-bracket mr-3 w-6 text-center"></i> Log out
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden sidebar-backdrop"></div>
+
+    <!-- Main Content -->
+    <div class="pt-20 px-4 pb-8 mx-auto max-w-screen-xl">
+
+    {% block content %}
+    {% endblock %}
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-8">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center text-gray-600 dark:text-gray-400 text-sm">
+                <p>© 2023 IPlytic. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+
+    <script>
+        // Set initial active page based on URL
+        function setInitialActivePage() {
+            const path = window.location.pathname;
+            const links = document.querySelectorAll('.nav-link');
+            const mobileLinks = document.querySelectorAll('.nav-link-mobile');
+            
+            // Update desktop navigation
+            links.forEach(link => {
+                link.classList.remove('text-primary-600', 'active');
+                link.classList.add('text-gray-900', 'dark:text-white');
+                
+                if (link.getAttribute('href') === path) {
+                    link.classList.add('text-primary-600', 'active');
+                    link.classList.remove('text-gray-900', 'dark:text-white');
+                }
+            });
+            
+            // Update mobile navigation
+            mobileLinks.forEach(link => {
+                link.classList.remove('active');
+                
+                if (link.getAttribute('href') === path) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // Theme toggle functionality
+        function setupThemeToggle(toggleButton, toggleHandler) {
+            toggleButton.addEventListener('click', function() {
+                const html = document.documentElement;
+                
+                if (html.classList.contains('dark')) {
+                    html.classList.remove('dark');
+                    toggleHandler.style.transform = 'translateX(0)';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    html.classList.add('dark');
+                    toggleHandler.style.transform = 'translateX(1.25rem)';
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        }
+        
+        // Check for saved theme preference
+        function applySavedTheme() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-toggle-handler').style.transform = 'translateX(1.25rem)';
+                document.getElementById('mobile-theme-toggle-handler').style.transform = 'translateX(1.25rem)';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-toggle-handler').style.transform = 'translateX(0)';
+                document.getElementById('mobile-theme-toggle-handler').style.transform = 'translateX(0)';
+            }
+        }
+        
+        // Avatar dropdown functionality
+        document.getElementById('avatar-button').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const avatarMenu = document.getElementById('avatar-menu');
+            avatarMenu.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const avatarButton = document.getElementById('avatar-button');
+            const avatarMenu = document.getElementById('avatar-menu');
+            
+            if (!avatarButton.contains(event.target) && !avatarMenu.contains(event.target) && !avatarMenu.classList.contains('hidden')) {
+                avatarMenu.classList.add('hidden');
+            }
+        });
+        
+        // Mobile menu toggle (sidebar)
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').classList.remove('hidden');
+            document.getElementById('sidebar-backdrop').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        // Close sidebar
+        document.getElementById('close-sidebar').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').classList.add('hidden');
+            document.getElementById('sidebar-backdrop').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        });
+        
+        // Close sidebar when clicking on backdrop
+        document.getElementById('sidebar-backdrop').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').classList.add('hidden');
+            document.getElementById('sidebar-backdrop').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        });
+        
+        // Setup theme toggles
+        setupThemeToggle(document.getElementById('theme-toggle'), document.getElementById('theme-toggle-handler'));
+        setupThemeToggle(document.getElementById('mobile-theme-toggle'), document.getElementById('mobile-theme-toggle-handler'));
+        
+        // Initialize active page on load
+        setInitialActivePage();
+        
+        // Apply saved theme on load
+        applySavedTheme();
+    </script>
+
+    {% block script %}
+    {% endblock %}
+
+</body>
+</html>

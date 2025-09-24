@@ -1,0 +1,310 @@
+{% extends 'admin/page-master.twig' %}
+
+{% block header %}
+    <div class="geex-content__header__content">
+        <h2 class="geex-content__header__title">Add Product Category</h2>
+        <p class="geex-content__header__subtitle">Use the form below to add a new product category</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="geex-content__section">
+        <div class="geex-content__form__single d-flex flex-column align-items-center">
+
+            <!-- Category Name Row -->
+            <div class="geex-content__form__single__box mb-20 w-50">
+                <div class="input-wrapper">
+                    <label for="name" class="input-label">Name</label>
+                    <input type="text" id="name" class="form-control" placeholder="Enter category name" />
+                </div>
+            </div>
+
+            <!-- Description Row -->
+            <div class="geex-content__form__single__box mb-20 w-50">
+                <div class="input-wrapper">
+                    <label for="description" class="input-label">Description (optional)</label>
+                    <textarea id="description" class="form-control" rows="2" placeholder="Write a brief description..."></textarea>
+                </div>
+            </div>
+
+            <!-- Button Row -->
+            <div class="geex-content__form__single__box w-50 text-center pt-3" >
+                <button type="button" id="submitCategory" class="btn btn-primary">Add Category</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Category List Section -->
+    <div class="geex-content__section mt-5">
+        <div class="geex-content__header">
+            <div class="geex-content__header__content">
+                <h3 class="geex-content__header__title">Existing Categories</h3>
+                <p class="geex-content__header__subtitle">Manage your product categories</p>
+            </div>
+        </div>
+
+        <div class="geex-content__form table-responsive">
+            <table id="categoryTable" class="table table-hover" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr id="category-{{ category.id }}">
+                        <td>{{ category.id }}</td>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.description ? category.description : 'No description' }}</td>
+                        <td>{{ category.created_at|date('Y-m-d H:i') }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning edit-category" data-id="{{ category.id }}" data-name="{{ category.name }}" data-description="{{ category.description }}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-category" data-id="{{ category.id }}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No categories found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function () {
+        // Add category functionality
+        $('#submitCategory').click(function (event) {
+            event.preventDefault();
+
+            const name = $('#name').val().trim();
+            const description = $('#description').val().trim();
+
+            if (!name) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Category name is required.'
+                });
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('description', description);
+
+            $.ajax({
+                url: '/admin/product-category',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    try {
+                        const res = JSON.parse(response);
+                        if (res.status === 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: res.message,
+                            }).then(() => {
+                                // Reload the page to show the new category
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed',
+                                text: res.message,
+                            });
+                        }
+                    } catch (error) {
+                        console.error('JSON parse error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Unexpected Error',
+                            text: 'Something went wrong. Please try again.'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: 'Failed to send request to server.'
+                    });
+                }
+            });
+        });
+
+        // Edit category functionality
+        $('.edit-category').click(function () {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            const description = $(this).data('description');
+
+            Swal.fire({
+                title: 'Edit Category',
+                html: `
+                    <input id="swal-name" class="swal2-input" placeholder="Category Name" value="${name}" required>
+                    <textarea id="swal-description" class="swal2-textarea" placeholder="Description">${description || ''}</textarea>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Update',
+                preConfirm: () => {
+                    const newName = $('#swal-name').val().trim();
+                    const newDescription = $('#swal-description').val().trim();
+                    
+                    if (!newName) {
+                        Swal.showValidationMessage('Category name is required');
+                        return false;
+                    }
+                    
+                    return { name: newName, description: newDescription };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('id', id);
+                    formData.append('name', result.value.name);
+                    formData.append('description', result.value.description);
+
+                    $.ajax({
+                        url: '/admin/edit-product-category',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            try {
+                                const res = JSON.parse(response);
+                                if (res.status === 200) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Success',
+                                        text: res.message,
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Failed',
+                                        text: res.message,
+                                    });
+                                }
+                            } catch (error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Failed to update category'
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        // Delete category functionality
+        $('.delete-category').click(function () {
+            const id = $(this).data('id');
+            const categoryName = $(this).closest('tr').find('td:eq(1)').text();
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `You are about to delete the category "${categoryName}". This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('id', id);
+
+                    $.ajax({
+                        url: '/admin/delete-product-category',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            try {
+                                const res = JSON.parse(response);
+                                if (res.status === 200) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Deleted!',
+                                        text: res.message,
+                                    }).then(() => {
+                                        $('#category-' + id).remove();
+                                        if ($('#categoryTable tbody tr').length === 0) {
+                                            $('#categoryTable tbody').html('<tr><td colspan="5" class="text-center">No categories found</td></tr>');
+                                        }
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Failed',
+                                        text: res.message,
+                                    });
+                                }
+                            } catch (error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Failed to delete category'
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        // Initialize DataTable if there are categories
+        {% if categories|length > 0 %}
+        $('#categoryTable').DataTable({
+            responsive: true,
+            ordering: true,
+            order: [[0, 'desc']],
+            pageLength: 10,
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search categories..."
+            }
+        });
+        {% endif %}
+    });
+</script>
+
+<style>
+    .geex-content__form table {
+        margin-top: 20px;
+    }
+    .table th {
+        background-color: #7c58d3;
+        color: white;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}

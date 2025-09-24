@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/assets/public/favicon/favicon.ico">
+    <title>Sign Up | IPlytic</title>
+    <script>
+  (function() {
+    try {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (_) {}
+  })();
+</script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .form-container {
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .dark .form-container {
+            border-color: #334155;
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .password-toggle:hover {
+            color: #0ea5e9;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(120deg, #0ea5e9 0%, #3b82f6 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(120deg, #0284c7 0%, #2563eb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+        }
+        
+        /* Loading screen styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        
+        .dark .loading-screen {
+            background-color: rgba(15, 23, 42, 0.9);
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #0ea5e9;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .dark .loading-spinner {
+            border: 5px solid #334155;
+            border-top: 5px solid #0ea5e9;
+        }
+        
+        .loading-text {
+            font-size: 18px;
+            color: #334155;
+            font-weight: 500;
+        }
+        
+        .dark .loading-text {
+            color: #e2e8f0;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 min-h-screen flex items-center justify-center p-4">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen hidden">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Creating your account...</p>
+    </div>
+    
+    <div class="max-w-6xl w-full mx-auto">
+        <div class="flex justify-center">
+            <!-- Sign Up Form -->
+            <div id="signup-form" class="form-container w-full max-w-md bg-white dark:bg-secondary-800 rounded-2xl shadow-xl p-8">
+                <div class="flex justify-center mb-6">
+                    <div class="w-16 h-16 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-plus text-3xl text-primary-500 dark:text-primary-400"></i>
+                    </div>
+                </div>
+                <h1 class="text-2xl font-bold text-secondary-800 dark:text-white text-center">Create an Account</h1>
+                <p class="text-sm text-secondary-500 dark:text-secondary-400 text-center mb-6">Join IPlytic today, it only takes a few steps</p>
+
+                <form id="form" class="space-y-5">
+                    <!-- Username -->
+                    <div>
+                        <label for="username" class="block mb-2 text-sm font-medium text-secondary-700 dark:text-secondary-300">Username</label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 text-sm text-secondary-500 bg-secondary-100 border border-r-0 border-secondary-300 rounded-l-md dark:bg-secondary-700 dark:text-secondary-400 dark:border-secondary-600">
+                                <i class="fas fa-user text-secondary-400"></i>
+                            </span>
+                            <input type="text" id="username" placeholder="John Doe"
+                                   class="flex-1 min-w-0 w-full text-sm p-3 border border-secondary-300 rounded-r-md bg-white dark:bg-secondary-700 dark:border-secondary-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition duration-200"/>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block mb-2 text-sm font-medium text-secondary-700 dark:text-secondary-300">Email</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                <i class="fas fa-envelope text-secondary-400"></i>
+                            </span>
+                            <input type="email" id="email" placeholder="you@example.com"
+                                   class="w-full pl-10 pr-4 py-3 text-sm rounded-lg border border-secondary-300 bg-white dark:bg-secondary-700 dark:border-secondary-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition duration-200"/>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label for="signup-password" class="block mb-2 text-sm font-medium text-secondary-700 dark:text-secondary-300">Password</label>
+                        <div class="relative">
+                            <input type="password" id="signup-password" placeholder="••••••••" required
+                                   class="w-full px-4 py-3 pr-10 text-sm rounded-lg border border-secondary-300 bg-white dark:bg-secondary-700 dark:border-secondary-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition duration-200"/>
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 password-toggle" onclick="togglePassword('signup-password', 'signup-eye-icon')">
+                                <i id="signup-eye-icon" class="fas fa-eye-slash text-secondary-400"></i>
+                            </span>
+                        </div>
+                        <p class="mt-1 text-xs text-secondary-500 dark:text-secondary-400">Must be at least 8 characters with one uppercase letter and one number</p>
+                    </div>
+
+                    <!-- Repeat Password -->
+                    <div>
+                        <label for="confirm-password" class="block mb-2 text-sm font-medium text-secondary-700 dark:text-secondary-300">Confirm Password</label>
+                        <div class="relative">
+                            <input type="password" id="confirm_password" placeholder="••••••••" required
+                                   class="w-full px-4 py-3 pr-10 text-sm rounded-lg border border-secondary-300 bg-white dark:bg-secondary-700 dark:border-secondary-600 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition duration-200"/>
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 password-toggle" onclick="togglePassword('confirm_password', 'confirm-eye-icon')">
+                                <i id="confirm-eye-icon" class="fas fa-eye-slash text-secondary-400"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="signup-terms" type="checkbox" required
+                                   class="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500 dark:bg-secondary-700 dark:border-secondary-600"/>
+                        </div>
+                        <label for="signup-terms" class="ml-2 text-sm text-secondary-600 dark:text-secondary-400">
+                            I agree to the <a href="#" class="text-primary-600 hover:underline dark:text-primary-400">terms & conditions</a> and acknowledge the <a href="#" class="text-primary-600 hover:underline dark:text-primary-400">privacy policy</a>
+                        </label>
+                    </div>
+
+                    <!-- Button -->
+                    <button type="submit"
+                            class="w-full btn-primary text-white font-medium rounded-lg px-4 py-3 transition focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-800 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200">
+                        Register New Account
+                    </button>
+
+                    <!-- Footer -->
+                    <p class="text-sm text-secondary-600 dark:text-secondary-400 text-center">
+                        Already have an account? <a href="/public/signin" class="text-primary-600 hover:underline dark:text-primary-400 font-medium">Sign In</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Toggle password visibility
+        function togglePassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(iconId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            }
+        }
+        
+        // Show loading screen
+        function showLoading() {
+            document.getElementById('loading-screen').classList.remove('hidden');
+        }
+        
+        // Hide loading screen
+        function hideLoading() {
+            document.getElementById('loading-screen').classList.add('hidden');
+        }
+        
+        // Show error message
+        function showError(message) {
+            hideLoading();
+            
+            // Create error element if it doesn't exist
+            let errorElement = document.getElementById('form-error');
+            if (!errorElement) {
+                errorElement = document.createElement('div');
+                errorElement.id = 'form-error';
+                errorElement.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200';
+                document.querySelector('form').prepend(errorElement);
+            }
+            
+            // Set error message
+            errorElement.innerHTML = `
+                <strong class="font-bold">Error: </strong>
+                <span class="block sm:inline">${message}</span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
+                    <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                    </svg>
+                </span>
+            `;
+        }
+        
+        // Validate password strength
+        function validatePassword(password) {
+            // At least 8 characters, one uppercase letter, and one number
+            const regex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+            return regex.test(password);
+        }
+        
+        // Form submission
+        $(document).ready(function () {
+            $('#form').on('submit', function (e) {
+                e.preventDefault(); // ⛔ Prevent form from reloading page
+
+                const username = $('#username').val();
+                const email = $('#email').val();
+                const password = $('#signup-password').val();
+                const confirm_password = $('#confirm_password').val();
+
+                if (!username || !email || !password || !confirm_password) {
+                    showError('Please fill in all fields.');
+                    return;
+                }
+                
+                if (password !== confirm_password) {
+                    showError('Passwords do not match.');
+                    return;
+                }
+                
+                if (!validatePassword(password)) {
+                    showError('Password must be at least 8 characters with one uppercase letter and one number.');
+                    return;
+                }
+
+                // Remove any existing error messages
+                const existingError = document.getElementById('form-error');
+                if (existingError) {
+                    existingError.remove();
+                }
+                
+                // Show loading screen
+                showLoading();
+
+                $.ajax({
+                    url: '/public/signup',
+                    type: 'POST',
+                    data: {
+                        username: username,
+                        email: email,
+                        password: password,
+                        confirm_password: confirm_password
+                    },
+                    success: function (response) {
+                        try {
+                            const res = JSON.parse(response);
+
+                            if (res.statusCode === 200) {
+                                // Keep loading screen visible while redirecting
+                                document.querySelector('.loading-text').textContent = 'Account created successfully! Redirecting...';
+                                setTimeout(() => {
+                                    window.location.href = '/dashboard';
+                                }, 1000);
+                            } else {
+                                showError(res.message || 'Signup failed. Please try again.');
+                            }
+                        } catch (error) {
+                            console.error('Invalid JSON response:', response);
+                            showError('An unexpected error occurred. Please contact support.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                        showError('An error occurred. Please try again.');
+                    }
+                });
+            });
+        });
+
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</body>
+</html>

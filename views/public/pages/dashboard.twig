@@ -1,0 +1,351 @@
+{% extends '/public/master_page.twig' %}
+
+{% block content %}
+    <!-- Dashboard Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p class="text-gray-600 dark:text-gray-400">Welcome back, John! Here's your API usage summary.</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="card p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-primary-100 dark:bg-primary-900">
+                    <i class="fa-solid fa-location-dot text-primary-600 dark:text-primary-300 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Total Requests</p>
+                    <h3 class="font-bold text-2xl text-gray-900 dark:text-white">12,489</h3>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex items-center text-sm text-green-500">
+                    <i class="fa-solid fa-arrow-up mr-1"></i>
+                    <span>12.4% this month</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900">
+                    <i class="fa-solid fa-check-circle text-green-600 dark:text-green-300 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Successful Requests</p>
+                    <h3 class="font-bold text-2xl text-gray-900 dark:text-white">12,201</h3>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex items-center text-sm text-green-500">
+                    <i class="fa-solid fa-arrow-up mr-1"></i>
+                    <span>10.2% this month</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-red-100 dark:bg-red-900">
+                    <i class="fa-solid fa-xmark-circle text-red-600 dark:text-red-300 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Failed Requests</p>
+                    <h3 class="font-bold text-2xl text-gray-900 dark:text-white">288</h3>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex items-center text-sm text-red-500">
+                    <i class="fa-solid fa-arrow-up mr-1"></i>
+                    <span>2.3% this month</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-primary-100 dark:bg-primary-900">
+                    <i class="fa-solid fa-gauge-high text-primary-600 dark:text-primary-300 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Current Usage</p>
+                    <h3 class="font-bold text-2xl text-gray-900 dark:text-white">78%</h3>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                    <div class="bg-primary-600 h-2.5 rounded-full" style="width: 78%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Tester and Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- API Tester Card -->
+        <div class="card p-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Test IP Lookup</h2>
+            <form id="ipForm" class="mb-4">
+                <div class="flex">
+                    <input type="text" id="ipInput" placeholder="Enter IP address or leave blank for your IP"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <button id="ipSubmit" type="submit"
+                        class="btn-primary text-white rounded-r-lg text-sm px-4 py-2">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div class="flex justify-between mb-2">
+                    <button id="cardViewBtn" class="btn-primary text-white font-medium rounded-lg text-xs px-3 py-1.5">
+                        <i class="fa-solid fa-table-cells-large mr-1"></i> Card View
+                    </button>
+                    <button id="jsonViewBtn" class="text-gray-900 bg-white border border-gray-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-gray-700 dark:text-white">
+                        <i class="fa-solid fa-code mr-1"></i> JSON View
+                    </button>
+                </div>
+
+<div id="cardView" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mt-2">
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">IP Address</p>
+            <p id="ipField" class="text-sm font-medium text-gray-900 dark:text-white">-</p>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Country</p>
+            <p id="countryField" class="text-sm font-medium text-gray-900 dark:text-white">-</p>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Region</p>
+            <p id="regionField" class="text-sm font-medium text-gray-900 dark:text-white">-</p>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">City</p>
+            <p id="cityField" class="text-sm font-medium text-gray-900 dark:text-white">-</p>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">ISP</p>
+            <p id="ispField" class="text-sm font-medium text-gray-900 dark:text-white">-</p>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Timezone</p>
+            <p id="timezoneField" class="text-sm font-medium text-gray-900 dark:text-white">-</p>
+        </div>
+    </div>
+</div>
+                <div id="jsonView" class="bg-gray-900 p-4 rounded-lg mt-2 hidden">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs text-gray-400">JSON Response</span>
+                        <button id="copyJsonBtn" class="text-gray-400 hover:text-white text-xs flex items-center">
+                            <i class="fa-regular fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                    <pre class="text-green-400 text-xs whitespace-pre-wrap break-words max-h-40 overflow-y-auto"><code id="jsonData"></code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card p-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent API Activity</h2>
+            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Timestamp</th>
+                            <th scope="col" class="px-4 py-3">IP Address</th>
+                            <th scope="col" class="px-4 py-3">Status</th>
+                        </tr>
+                    </thead>
+<tbody>
+    {% for log in activity %}
+        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+            <td class="px-4 py-3">{{ log.timestamp }}</td>
+            <td class="px-4 py-3">{{ log.ip_address }}</td>
+            <td class="px-4 py-3">
+                {% if log.status_code == 200 %}
+                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                        Success
+                    </span>
+                {% else %}
+                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                        Failed
+                    </span>
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="3" class="px-4 py-3 text-center text-gray-500 dark:text-gray-400">
+                No activity logs found.
+            </td>
+        </tr>
+    {% endfor %}
+</tbody>
+
+                </table>
+            </div>
+            <div class="mt-4 text-right">
+                <a href="/usage" class="text-sm text-primary-600 hover:underline dark:text-primary-400">View all activity</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Documentation Quick Guide -->
+    <div class="card p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">API Quick Guide</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Endpoint</h3>
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    <code class="text-green-400 text-sm">GET https://api.iplytic.com/v1/ip-lookup?ip=ADDRESS&key=API_KEY</code>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">Replace ADDRESS with the IP you want to lookup and API_KEY with your personal API key.</p>
+            </div>
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Example Response</h3>
+                <div class="bg-gray-900 p-4 rounded-lg overflow-auto max-h-40">
+                    <pre class="text-green-400 text-xs"><code>{
+                          "ip": "192.168.1.1",
+                          "country": "United States",
+                          "country_code": "US",
+                          "region": "California",
+                          "region_code": "CA",
+                          "city": "San Francisco",
+                          "postal_code": "94107",
+                          "continent": "North America",
+                          "latitude": 37.7749,
+                          "longitude": -122.4194,
+                          "timezone": "America/Los_Angeles",
+                          "isp": "Comcast Cable",
+                          "organization": "Comcast ISP Services",
+                          "asn": "AS7922",
+                          "success": true,
+                          "message": "IP lookup successful"
+                    }</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block script %}
+<script>
+    // Function to toggle views (Card / JSON)
+    function toggleView(view) {
+        const cardView = document.getElementById('cardView');
+        const jsonView = document.getElementById('jsonView');
+        const cardBtn = document.getElementById('cardViewBtn');
+        const jsonBtn = document.getElementById('jsonViewBtn');
+
+        // Hide both
+        cardView.classList.add('hidden');
+        jsonView.classList.add('hidden');
+
+        // Reset button styles
+        cardBtn.classList.remove('btn-primary', 'text-white');
+        cardBtn.classList.add('bg-white', 'dark:bg-gray-700', 'text-gray-900', 'border', 'border-gray-300');
+
+        jsonBtn.classList.remove('btn-primary', 'text-white');
+        jsonBtn.classList.add('bg-white', 'dark:bg-gray-700', 'text-gray-900', 'border', 'border-gray-300');
+
+        // Show selected view + style button
+        if (view === 'card') {
+            cardView.classList.remove('hidden');
+            cardBtn.classList.remove('bg-white', 'dark:bg-gray-700', 'text-gray-900', 'border', 'border-gray-300');
+            cardBtn.classList.add('btn-primary', 'text-white');
+        } else {
+            jsonView.classList.remove('hidden');
+            jsonBtn.classList.remove('bg-white', 'dark:bg-gray-700', 'text-gray-900', 'border', 'border-gray-300');
+            jsonBtn.classList.add('btn-primary', 'text-white');
+        }
+    }
+
+    // Event listeners
+    document.getElementById('cardViewBtn').addEventListener('click', () => toggleView('card'));
+    document.getElementById('jsonViewBtn').addEventListener('click', () => toggleView('json'));
+
+    // Copy JSON functionality
+    document.getElementById('copyJsonBtn').addEventListener('click', function () {
+        const jsonText = document.getElementById('jsonData').textContent;
+        navigator.clipboard.writeText(jsonText).then(() => {
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Copied!';
+            setTimeout(() => {
+                this.innerHTML = originalHtml;
+            }, 2000);
+        });
+    });
+
+    // jQuery AJAX handler for IP form$(document).ready(function () {
+// jQuery AJAX handler for IP form
+$(document).ready(function () {
+    $('#ipForm').on('submit', function (event) {
+        event.preventDefault();
+
+        const ipInput = $('#ipInput').val().trim();
+        const formData = new FormData();
+        if (ipInput) formData.append('ipInput', ipInput);
+
+        $.ajax({
+            url: '/test_lookup',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+success: function (response) {
+    try {
+        const res = typeof response === 'string' ? JSON.parse(response) : response;
+
+        if (res.statusCode === 200) {
+            const data = res.data; // ✅ not res.geoData anymore
+
+            // ✅ Update Card View
+            $('#ipField').text(data.ip || '-');
+            $('#countryField').text(data.countryName || data.country_code || '-');
+            $('#regionField').text(data.region || '-');
+            $('#cityField').text(data.city || '-');
+            $('#ispField').text(data.isp || data.org || '-');
+            $('#timezoneField').text(data.timezone || '-');
+
+            // ✅ Update JSON View
+            const prettyJson = JSON.stringify(data, null, 2);
+            $('#jsonData').text(prettyJson);
+
+            // Show whichever view is active
+            if (!$('#cardView').hasClass('hidden') && $('#jsonView').hasClass('hidden')) {
+                toggleView('card');
+            } else {
+                toggleView('json');
+            }
+        } else {
+            console.warn('⚠️ API Warning:', res.message || 'Could not fetch data.');
+        }
+    } catch (e) {
+        console.error('❌ Error parsing response:', e, response);
+    }
+},
+            error: function (xhr) {
+                let errorMessage = 'Request failed. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        errorMessage = res.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = xhr.responseText;
+                    }
+                }
+                console.error('🚨 Server Error:', errorMessage);
+            }
+        });
+    });
+});
+
+</script>
+{% endblock %}

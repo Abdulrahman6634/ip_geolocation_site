@@ -1,0 +1,295 @@
+{% extends 'admin/page-master.twig' %}
+
+{% block header %}
+    <div class="geex-content__header__content">
+        <h2 class="geex-content__header__title">Profile</h2>
+        <p class="geex-content__header__subtitle">Update your profile information</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <style>
+        .image-box {
+            width: 200px;
+            height: 200px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            background-color: #f9f9f9;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        .image-options {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .image-options button {
+            border: none;
+            background-color: #f1f1f1;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Modal styling */
+        #imageModal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #modalImage {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .geex-content__form__single__box.w-50 {
+            width: 50% !important;
+        }
+    </style>
+
+    <div class="geex-content__section">
+        <div class="geex-content__form__single d-flex flex-column align-items-center">
+
+            <!-- User Image -->
+            <div class="geex-content__form__single__box mb-20 w-50 text-center">
+                <label class="input-label">Profile Image</label>
+                <div class="image-box" id="imageBox">
+                    {% if user.profile_image %}
+                        <img id="imagePreview" src="{{ env.APP_URL }}uploads/admin/users/{{ user.profile_image }}" alt="Profile Preview">
+                    {% else %}
+                        <img id="imagePreview" src="" alt="Profile Preview" style="display: none;">
+                    {% endif %}
+                    <div id="imagePlaceholder" style="{{ user.profile_image ? 'display: none;' : '' }}">
+                        <small>Select Profile Image</small><br>
+                        <button type="button" id="selectImageBtn" class="btn btn-outline-primary btn-sm mt-2">Choose Image</button>
+                    </div>
+                    <input type="file" id="image" name="image" accept="image/*" hidden />
+                    <input type="hidden" id="remove_image" name="remove_image" value="0" />
+                </div>
+
+                <div class="image-options d-flex justify-content-center" id="imageOptions" style="{{ user.profile_image ? '' : 'display: none;' }}">
+                    <button type="button" id="viewBtn">👁 View</button>
+                    <button type="button" id="changeBtn">🔄 Change</button>
+                    <button type="button" id="removeBtn">❌ Remove</button>
+                </div>
+            </div>
+
+            <!-- First Name -->
+            <div class="geex-content__form__single__box mb-20 w-50">
+                <div class="input-wrapper">
+                    <label for="first_name" class="input-label">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="form-control" placeholder="Enter first name" value="{{ user.first_name }}" />
+                </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="geex-content__form__single__box mb-20 w-50">
+                <div class="input-wrapper">
+                    <label for="last_name" class="input-label">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Enter last name" value="{{ user.last_name }}" />
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="geex-content__form__single__box mb-20 w-50">
+                <div class="input-wrapper">
+                    <label for="email" class="input-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Enter email address" value="{{ user.email }}" />
+                </div>
+            </div>
+
+            <!-- Password (optional for update) -->
+            <div class="geex-content__form__single__box mb-20 w-50">
+                <div class="input-wrapper">
+                    <label for="password" class="input-label">Password (leave blank to keep current)</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter new password" />
+                    <small class="form-text text-muted">Only enter a password if you want to change it</small>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="geex-content__form__single__box w-50 text-center pt-3">
+                <button type="button" id="updateProfile" class="btn btn-primary">Update Profile</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal">
+        <img id="modalImage" src="" />
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            const imageInput = $('#image');
+            const imagePreview = $('#imagePreview');
+            const imagePlaceholder = $('#imagePlaceholder');
+            const imageOptions = $('#imageOptions');
+            const removeImageInput = $('#remove_image');
+            const hasExistingImage = {{ user.profile_image ? 'true' : 'false' }};
+            const existingImageUrl = '{{ user.profile_image ? env.APP_URL ~ "uploads/users/" ~ user.profile_image : "" }}';
+
+            // Trigger file input when clicking button
+            $('#selectImageBtn, #changeBtn').click(function () {
+                imageInput.trigger('click');
+            });
+
+            // Show preview when file selected
+            imageInput.on('change', function () {
+                const file = this.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.attr('src', e.target.result).show();
+                        imagePlaceholder.hide();
+                        imageOptions.show();
+                        removeImageInput.val('0'); // Reset remove flag if user selects a new image
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Invalid File', text: 'Please upload a valid image file.' });
+                }
+            });
+
+            // View image in modal
+            $('#viewBtn').click(function () {
+                const src = imagePreview.attr('src');
+                if (src) {
+                    $('#modalImage').attr('src', src);
+                    $('#imageModal').fadeIn(200).css('display', 'flex');
+                }
+            });
+
+            // Close modal when clicking outside the image
+            $('#imageModal').click(function (e) {
+                if (e.target.id === 'imageModal') {
+                    $('#imageModal').fadeOut(200);
+                }
+            });
+
+            // Remove image
+            $('#removeBtn').click(function () {
+                // Clear the file input
+                imageInput.val('');
+
+                // Hide preview and show placeholder
+                imagePreview.hide();
+                imagePlaceholder.show();
+                imageOptions.hide();
+
+                // Set flag to indicate image should be removed
+                removeImageInput.val('1');
+            });
+
+            // Submit form
+            $('#updateProfile').click(function (event) {
+                event.preventDefault();
+
+                const first_name = $('#first_name').val().trim();
+                const last_name = $('#last_name').val().trim();
+                const email = $('#email').val().trim();
+                const password = $('#password').val().trim();
+                const removeImage = removeImageInput.val() === '1';
+                const image = imageInput[0].files[0];
+
+                if (!first_name || !last_name || !email) {
+                    Swal.fire({ icon: 'error', title: 'Validation Error', text: 'First name, last name, and email are required.' });
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('first_name', first_name);
+                formData.append('last_name', last_name);
+                formData.append('email', email);
+
+                // Only add password if provided
+                if (password) {
+                    formData.append('password', password);
+                }
+
+                // Add image if a new one was selected
+                if (image) {
+                    formData.append('image', image);
+                }
+
+                // Add remove_image flag if user wants to remove the image
+                if (removeImage) {
+                    formData.append('remove_image', '1');
+                }
+
+                $.ajax({
+                    url: '/admin/profile',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        try {
+                            const res = typeof response === 'string' ? JSON.parse(response) : response;
+                            if (res.status === 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: res.message,
+                                }).then(() => {
+                                    // Reload the page to show updated data
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'Failed', text: res.message });
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e, response);
+                            Swal.fire({ icon: 'error', title: 'Unexpected Error', text: 'Could not process server response.' });
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMessage = 'Request failed. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                const res = JSON.parse(xhr.responseText);
+                                errorMessage = res.message || errorMessage;
+                            } catch (e) {
+                                // If not JSON, use response text as is
+                                errorMessage = xhr.responseText;
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server Error',
+                            text: errorMessage
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,403 @@
+{% extends '/public/master_page.twig' %}
+
+{% block content %}
+<div class="pt-20 px-4 pb-8 mx-auto max-w-screen-xl">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
+        <p class="text-gray-600 dark:text-gray-400">Manage your account settings and preferences</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Left Column -->
+        <div>
+            <!-- Profile Information Section -->
+            <div class="card p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                    <i class="fa-solid fa-user mr-2 text-primary-600 dark:text-primary-300"></i>
+                    Profile Information
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Update your personal information</p>
+                
+                <form id="profileForm">
+                    <div class="mb-4">
+                        <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>
+                        <input type="text" id="username" name="username" value="{{ user.first_name }}"  
+                            class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
+                                   focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 
+                                   dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                                   dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email Address</label>
+                        <input type="email" id="email" name="email" value="{{ user.email }}"  
+                            class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
+                                   focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 
+                                   dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
+                                   dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                    </div>
+                    
+                    <button type="submit" id="updateProfile"
+                        class="btn-primary text-white focus:ring-4 focus:ring-primary-300 
+                               font-medium rounded-lg text-sm px-5 py-2.5 w-full 
+                               dark:focus:ring-primary-900">
+                        Save Changes
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Change Password Section -->
+            <div class="card p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                    <i class="fa-solid fa-lock mr-2 text-primary-600 dark:text-primary-300"></i>
+                    Change Password
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Ensure your account is using a strong, unique password</p>
+                
+                <form id="passwordForm" class="relative">
+                    <!-- Current Password -->
+                    <div class="mb-4 relative">
+                        <label for="currentPassword" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Current Password</label>
+                        <input type="password" id="currentPassword" required 
+                               class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 
+                                      focus:border-primary-500 block w-full p-2.5 pr-10 
+                                      dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white 
+                                      dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onclick="togglePassword('currentPassword','eye-current')">
+                            <i id="eye-current" class="fas fa-eye-slash text-gray-400"></i>
+                        </span>
+                    </div>
+                    
+                    <!-- New Password -->
+                    <div class="mb-4 relative">
+                        <label for="newPassword" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">New Password</label>
+                        <input type="password" id="newPassword" required 
+                               class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 
+                                      focus:border-primary-500 block w-full p-2.5 pr-10 
+                                      dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white 
+                                      dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onclick="togglePassword('newPassword','eye-new')">
+                            <i id="eye-new" class="fas fa-eye-slash text-gray-400"></i>
+                        </span>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Must be at least 8 characters</p>
+                    </div>
+                    
+                    <!-- Confirm Password -->
+                    <div class="mb-6 relative">
+                        <label for="confirmPassword" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" required 
+                               class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 
+                                      focus:border-primary-500 block w-full p-2.5 pr-10 
+                                      dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white 
+                                      dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onclick="togglePassword('confirmPassword','eye-confirm')">
+                            <i id="eye-confirm" class="fas fa-eye-slash text-gray-400"></i>
+                        </span>
+                    </div>
+                    
+                    <button type="submit" id="updatePassword" 
+                            class="btn-primary text-white focus:ring-4 focus:ring-primary-300 
+                                   font-medium rounded-lg text-sm px-5 py-2.5 w-full 
+                                   dark:focus:ring-primary-900">
+                        Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div>
+            <!-- Delete Account Section -->
+            <div class="card p-6 border border-red-200 dark:border-red-800">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                    <i class="fa-solid fa-exclamation-triangle mr-2 text-red-600 dark:text-red-300"></i>
+                    Delete Account
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Once you delete your account, there is no going back. Please be certain.</p>
+                
+                <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-6">
+                    <h3 class="text-lg font-semibold text-red-800 dark:text-red-400 mb-2">Before you delete your account, please note:</h3>
+                    <ul class="list-disc pl-5 text-red-700 dark:text-red-300 space-y-1">
+                        <li>All your data will be permanently removed</li>
+                        <li>This action cannot be undone</li>
+                        <li>You will lose access to all services</li>
+                    </ul>
+                </div>
+                
+                <div class="flex items-center mb-6">
+                    <input id="confirmDelete" type="checkbox" class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                    <label for="confirmDelete" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">I understand that all my data will be permanently deleted</label>
+                </div>
+                
+                <button id="deleteAccountBtn" type="button" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none dark:focus:ring-red-800 opacity-60 cursor-not-allowed" disabled>
+                    Delete My Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+    } else {
+        input.type = "password";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+    }
+}
+</script>
+
+<script>
+    // Enable delete button only when checkbox is checked
+    document.getElementById('confirmDelete').addEventListener('change', function() {
+        const deleteBtn = document.getElementById('deleteAccountBtn');
+        deleteBtn.disabled = !this.checked;
+        deleteBtn.classList.toggle('opacity-60', !this.checked);
+        deleteBtn.classList.toggle('cursor-not-allowed', !this.checked);
+        deleteBtn.classList.toggle('hover:bg-red-700', this.checked);
+        deleteBtn.classList.toggle('dark:hover:bg-red-600', this.checked);
+    });
+
+    // Delete account confirmation
+    document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+        if (confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
+            alert('Account deletion process initiated. You will receive a confirmation email.');
+            // In a real application, this would trigger an account deletion process
+        }
+    });
+
+    // Profile form submission
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const firstName = document.getElementById('firstName').value;
+        const lastName = document.getElementById('lastName').value;
+        const email = document.getElementById('email').value;
+        
+        // Update profile name and email in profile card
+        document.getElementById('profileNameDisplay').textContent = `${firstName} ${lastName}`;
+        document.getElementById('profileEmailDisplay').textContent = email;
+        
+        alert('Profile updated successfully!');
+    });
+
+    // Password form validation
+    document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (newPassword !== confirmPassword) {
+            alert('New password and confirmation password do not match.');
+            return false;
+        }
+        
+        if (newPassword.length < 8) {
+            alert('New password must be at least 8 characters long.');
+            return false;
+        }
+        
+        // In a real application, you would verify the current password with the server
+        // and then update to the new password
+        
+        alert('Password updated successfully!');
+        
+        // Clear the form
+        this.reset();
+    });
+
+    // Add focus effects to inputs
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.classList.add('ring-2', 'ring-primary-300', 'dark:ring-primary-500');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.classList.remove('ring-2', 'ring-primary-300', 'dark:ring-primary-500');
+        });
+    });
+</script>
+<script>
+$(document).ready(function () {
+
+    // 🔹 Update Profile
+    $('#updateProfile').click(function (event) {
+        event.preventDefault();
+
+        const username = $('#username').val().trim();
+        const email = $('#email').val().trim();
+
+        if (!username && !email) {
+            alert('Please provide at least a username or an email.');
+            return;
+        }
+
+        const formData = new FormData();
+        if (username) formData.append('username', username);
+        if (email) formData.append('email', email);
+
+        $.ajax({
+            url: '/api/profile/update',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                try {
+                    const res = typeof response === 'string' ? JSON.parse(response) : response;
+
+                    if (res.statusCode === 200 && (res.username || res.email)) {
+                        $('#username').val(res.username);
+                        $('#email').val(res.email);
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert(res.message || 'Profile update failed.');
+                    }
+                } catch (e) {
+                    console.error('Error parsing response:', e, response);
+                    alert('Unexpected error: Could not process server response.');
+                }
+            },
+            error: function (xhr) {
+                let errorMessage = 'Request failed. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        errorMessage = res.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = xhr.responseText;
+                    }
+                }
+                alert('Server Error: ' + errorMessage);
+            }
+        });
+    });
+
+
+    // 🔹 Change Password
+    $('#updatePassword').click(function (event) {
+        event.preventDefault();
+
+        const currentPassword = $('#currentPassword').val();
+        const newPassword = $('#newPassword').val();
+        const confirmPassword = $('#confirmPassword').val();
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            alert('All password fields are required.');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            alert('New password and confirmation do not match.');
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            alert('New password must be at least 8 characters long.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('currentPassword', currentPassword);
+        formData.append('newPassword', newPassword);
+        formData.append('confirmPassword', confirmPassword);
+
+        $.ajax({
+            url: '/api/profile/change-password',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                try {
+                    const res = typeof response === 'string' ? JSON.parse(response) : response;
+
+                    if (res.success) {
+                        alert(res.message);
+                        $('#passwordForm')[0].reset();
+                    } else {
+                        alert(res.message || 'Password update failed.');
+                    }
+                } catch (e) {
+                    console.error('Error parsing response:', e, response);
+                    alert('Unexpected error: Could not process server response.');
+                }
+            },
+            error: function (xhr) {
+                let errorMessage = 'Request failed. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        errorMessage = res.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = xhr.responseText;
+                    }
+                }
+                alert('Server Error: ' + errorMessage);
+            }
+        });
+    });
+
+
+    // 🔹 Delete Account
+    $('#deleteAccountBtn').click(function () {
+        if (confirm('Are you sure? This action cannot be undone!')) {
+            $.ajax({
+                url: '/api/profile/delete',
+                type: 'GET',
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    try {
+                        const res = typeof response === 'string' ? JSON.parse(response) : response;
+
+                        if (res.success) {
+                            alert(res.message);
+                            window.location.href = '/logout';
+                        } else {
+                            alert(res.message || 'Account deletion failed.');
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e, response);
+                        alert('Unexpected error: Could not process server response.');
+                    }
+                },
+                error: function (xhr) {
+                    let errorMessage = 'Request failed. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        try {
+                            const res = JSON.parse(xhr.responseText);
+                            errorMessage = res.message || errorMessage;
+                        } catch (e) {
+                            errorMessage = xhr.responseText;
+                        }
+                    }
+                    alert('Server Error: ' + errorMessage);
+                }
+            });
+        }
+    });
+
+});
+</script>
+{% endblock %}

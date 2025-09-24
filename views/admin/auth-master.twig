@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>SignIn - Geex Dashboard</title>
+
+{% include 'admin/includes/style.twig'%}
+	
+    <script>
+		// Render localStorage JS:
+		if (localStorage.theme) document.documentElement.setAttribute("data-theme", localStorage.theme);
+		if (localStorage.layout) document.documentElement.setAttribute("data-nav", localStorage.navbar);
+		if (localStorage.layout) document.documentElement.setAttribute("dir", localStorage.layout);
+    </script>	
+</head>
+
+<body class="geex-dashboard authentication-page">
+	<main class="geex-content">
+
+{% block content %}
+{% endblock %}
+	</main>
+    {% include 'admin/includes/scripts.twig'%}
+
+    {% block script %}
+    {% endblock %}
+
+</body>
+
+</html>

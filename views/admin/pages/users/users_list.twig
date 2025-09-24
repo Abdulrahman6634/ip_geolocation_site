@@ -1,0 +1,201 @@
+{% extends 'admin/page-master.twig' %}
+
+{% block header %}
+    <div class="geex-content__header__content">
+        <h2 class="geex-content__header__title">Products Dashboard</h2>
+        <p class="geex-content__header__subtitle">Manage your product inventory with ease</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="geex-content__section geex-content__form table-responsive">
+
+            <div class="table-responsive">
+                <table  id="zero-config" class="table dt-table-hover" style="width:100%">
+                    <thead>
+                        <tr style="width: 100%;">
+                            <th style="width: 20%;">Id</th>
+                            <th style="width: 20%;">First_name</th>
+                            <th style="width: 20%;">Last_name</th>
+                            <th style="width: 20%;">Email</th>
+                            <th style="width: 20%;">Type</th>
+                            <th style="width: 20%;">Status</th>
+                            <th style="width: 20%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr style="width: 100%;">
+                            <th style="width: 20%;">Id</th>
+                            <th style="width: 20%;">First_name</th>
+                            <th style="width: 20%;">Last_name</th>
+                            <th style="width: 20%;">Email</th>
+                            <th style="width: 20%;">Type</th>
+                            <th style="width: 20%;">Status</th>
+                            <th style="width: 20%;">Action</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+
+    <style>
+        /* Purple header style matching Geex theme */
+        table#zero-config thead th {
+            background-color: #7c58d3; /* Geex purple tone */
+            color: #fff;
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        table#zero-config tfoot th {
+            background-color: #f5f5f5;
+            color: #7c58d3;
+            text-align: center;
+        }
+
+        table#zero-config td {
+            vertical-align: middle;
+            text-align: center;
+        }
+    </style>
+
+    <script>
+        //    View Data
+        $(document).ready(function () {
+            var table = $('#zero-config').dataTable({
+                "dom": "<'dt--top-section'<'row'<'col-12 col-sm-6 d-flex justify-content-sm-start justify-content-center'l><'col-12 col-sm-6 d-flex justify-content-sm-end justify-content-center mt-sm-0 mt-3'f>>>" +
+                    "<'table-responsive'tr>" +
+                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                "oLanguage": {
+                    "oPaginate": {
+                        "sPrevious": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
+                        "sNext": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'
+                    },
+                    "sInfo": "Showing page _PAGE_ of _PAGES_",
+                    "sSearch": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+                    "sSearchPlaceholder": "Search...",
+                    "sLengthMenu": "Results :  _MENU_"
+                },
+                "stripeClasses": [],
+                "lengthMenu": [7, 10, 20, 50],
+                "pageLength": 10,
+                "language": {
+                    processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Loading...</span>'
+                },
+                "responsive": true,
+                "bProcessing": true,
+                "sAjaxSource": "/admin/api/users",
+                "bPaginate": true,
+                "sPaginationType": "full_numbers",
+                "iDisplayLength": 10,
+                // "order": [[0, 'desc']],
+                "aoColumns": [
+                    { mData: 'id'},
+                    { mData: 'first_name'},
+                    { mData: 'last_name' },
+                    { mData: 'email' },
+                    { mData: 'type' },
+                    { mData: 'status' },
+                    { mData: 'action' }
+                ]
+            });
+        });
+        function userStatus(userID, status) {
+            if(status == 0){
+                var currStatus= "block";
+            }else{
+                var currStatus= "active";
+            }
+            var el = this;
+            $(this).html('<i class="fa fa-circle-o-notch fa-spin"></i> loading...');
+            var csrf_token = $("input[name=csrf]").val();
+            $.ajax({
+                url: '/admin/delete',
+                type: 'GET', data: {
+                    id: userID,
+                    status: currStatus,
+                    page_name: "userStatusUpdate",
+                    table_name:"users",
+                    csrf: csrf_token
+                }, success: function (data) {
+                    $(el).closest("tr").fadeOut();
+                    if (data == 1) {
+                        toastr.success('Status Updated.');
+                        $(el).closest("tr").fadeOut();
+                        $('#table').DataTable().ajax.reload(null, false);
+                    } else {
+                        toastr.error('Something went wrong.');
+
+                    }
+                }
+
+            });
+        }
+
+        //Delete Data
+        function deleteUser(deleteid) {
+            var el = this;
+            $(this).prop("disabled", true);
+// add spinner to button
+            $(this).html('<i class="fa fa-circle-o-notch fa-spin"></i> loading...');
+            var csrf_token = $("input[name=csrf]").val();
+            $.ajax({
+                url: '/admin/api/delete',
+                type: 'GET', data: {
+                    id: deleteid,
+                    page_name: "delete",
+                    table_name: "categories",
+                    csrf: csrf_token
+                }, success: function (data) {
+                    $('#zero-config').DataTable().ajax.reload(null, false);
+                    $(el).closest("tr").fadeOut();
+                    toastr.clear();
+                    if (data == 1) {
+                        toastr.success('Successfully deleted.');
+                        $(el).closest("tr").fadeOut();
+                        $('#zero-config').DataTable().ajax.reload(null, false);
+                    } else {
+                        toastr.error('Something went wrong.');
+
+                    }
+                }
+            });
+        }
+
+
+        //Delete Data
+        function payOut(id) {
+            var el = this;
+            $(this).prop("disabled", true);
+// add spinner to button
+            $(this).html('<i class="fa fa-circle-o-notch fa-spin"></i> loading...');
+            var csrf_token = $("input[name=csrf]").val();
+            $.ajax({
+                url: '/backend',
+                type: 'GET', data: {
+                    id: id,
+                    page_name: "clear_wallet",
+                    csrf: csrf_token
+                }, success: function (data) {
+                    $('#zero-config').DataTable().ajax.reload(null, false);
+                    $(el).closest("tr").fadeOut();
+                    toastr.clear();
+                    if (data == 1) {
+                        toastr.success('User Wallet Amount Cleared.');
+                        $(el).closest("tr").fadeOut();
+                        $('#zero-config').DataTable().ajax.reload(null, false);
+                    } else {
+                        toastr.error('Something went wrong.');
+
+                    }
+                }
+            });
+        }
+
+
+    </script>
+{% endblock %}

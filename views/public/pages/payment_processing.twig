@@ -1,0 +1,184 @@
+{% extends '/public/master_page.twig' %}
+
+{% block content %}
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Complete Your Purchase</h1>
+            <p class="text-gray-600 dark:text-gray-400">Secure payment processing for your IPlytic subscription</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="card p-6 sticky top-24">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Order Summary</h2>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600 dark:text-gray-400">Professional Plan</span>
+                            <span class="font-semibold text-gray-900 dark:text-white">$29.00</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600 dark:text-gray-400">Billed yearly</span>
+                            <span class="font-semibold text-primary-600 dark:text-primary-400">Save 20%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
+                            <span class="font-semibold text-gray-900 dark:text-white">$29.00</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600 dark:text-gray-400">Tax</span>
+                            <span class="font-semibold text-gray-900 dark:text-white">$2.61</span>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-bold text-gray-900 dark:text-white">Total</span>
+                            <span class="text-lg font-bold text-primary-600 dark:text-primary-400">$31.61</span>
+                        </div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">USD, charged annually</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <div class="lg:col-span-2">
+                <div class="card p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Payment Details</h2>
+                    
+                    <form id="payment-form">
+                        <!-- Card Details -->
+                        <div class="mb-6">
+                            <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2" for="card-number">
+                                Card Number
+                            </label>
+                            <div class="relative">
+                                <input class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 pl-10" 
+                                    id="card-number" 
+                                    type="text" 
+                                    placeholder="1234 5678 9012 3456"
+                                    required>
+                                <i class="fa-regular fa-credit-card absolute left-3 top-3.5 text-gray-500"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2" for="expiry-date">
+                                    Expiry Date
+                                </label>
+                                <input class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" 
+                                    id="expiry-date" 
+                                    type="text" 
+                                    placeholder="MM/YY"
+                                    required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2" for="cvc">
+                                    Security Code (CVC)
+                                </label>
+                                <div class="relative">
+                                    <input class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" 
+                                        id="cvc" 
+                                        type="text" 
+                                        placeholder="123"
+                                        required>
+                                    <i class="fa-solid fa-lock absolute right-3 top-3 text-gray-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Cardholder Name -->
+                        <div class="mb-6">
+                            <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2" for="cardholder-name">
+                                Cardholder Name
+                            </label>
+                            <input class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5" 
+                                id="cardholder-name" 
+                                type="text" 
+                                placeholder="John Doe"
+                                required>
+                        </div>
+                        
+                        <!-- Terms and Submit -->
+                        <div class="flex items-center mb-4">
+                            <input id="terms" type="checkbox" class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" required>
+                            <label for="terms" class="ms-2 text-sm text-gray-500 dark:text-gray-300">
+                                I agree to the <a href="#" class="text-primary-600 hover:underline dark:text-primary-400">terms and conditions</a>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="w-full btn-primary text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                            <i class="fa-solid fa-lock mr-2"></i> Pay Now
+                        </button>
+                        
+                        <p class="text-center text-gray-500 dark:text-gray-400 text-xs mt-4">
+                            <i class="fa-solid fa-shield-alt mr-1"></i> Your payment information is encrypted and secure
+                        </p>
+                    </form>
+                </div>
+                
+                <!-- Trust Badges -->
+                <div class="flex justify-center items-center space-x-6 text-gray-400 dark:text-gray-500">
+                    <i class="fa-brands fa-cc-visa text-2xl"></i>
+                    <i class="fa-brands fa-cc-mastercard text-2xl"></i>
+                    <i class="fa-brands fa-cc-amex text-2xl"></i>
+                    <i class="fa-brands fa-cc-discover text-2xl"></i>
+                    <i class="fa-brands fa-cc-paypal text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}
+
+{% block script %}
+
+    <script>
+        // Form submission
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulate payment processing
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Processing...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                alert('Payment successful! Your subscription is now active.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        });
+
+        // Format card number
+        document.getElementById('card-number').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 16) value = value.slice(0, 16);
+            
+            // Add spaces every 4 digits
+            value = value.replace(/(\d{4})/g, '$1 ').trim();
+            e.target.value = value;
+        });
+
+        // Format expiry date
+        document.getElementById('expiry-date').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 4) value = value.slice(0, 4);
+            
+            if (value.length > 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2);
+            }
+            e.target.value = value;
+        });
+
+    </script>
+    
+{% endblock %}

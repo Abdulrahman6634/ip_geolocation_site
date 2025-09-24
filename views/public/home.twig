@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ env.App_URL }}assets/public/favicon/favicon.ico">
+    <title>IP Geolocation API Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .hero-bg {
+            background: linear-gradient(120deg, rgba(14, 165, 233, 0.03) 0%, rgba(99, 102, 241, 0.05) 100%);
+        }
+        
+        .dark .hero-bg {
+            background: linear-gradient(120deg, rgba(14, 165, 233, 0.05) 0%, rgba(99, 102, 241, 0.08) 100%);
+        }
+        
+        .globe-bg {
+            background: url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80');
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+        }
+        
+        .dark .globe-bg {
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .loader {
+            border-top-color: #0ea5e9;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        section {
+            scroll-margin-top: 6rem;
+        }
+        
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .dark .feature-card {
+            border-color: #334155;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pricing-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .dark .pricing-card {
+            border-color: #334155;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #0ea5e9;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(120deg, #0ea5e9 0%, #3b82f6 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(120deg, #0284c7 0%, #2563eb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #0ea5e9;
+            color: #0ea5e9;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: #0ea5e9;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+        }
+        
+        .cta-section {
+            background: linear-gradient(120deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 16px;
+        }
+        
+        .dark .cta-section {
+            background: linear-gradient(120deg, #1e293b 0%, #0f172a 100%);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .dark .stat-card {
+            background: #1e293b;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-secondary-900 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white dark:bg-secondary-800 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-secondary-700 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                       <div class="w-9 h-9 rounded-lg flex items-center justify-center ">
+                           <img src="{{ env.App_URL }}assets/public/favicon/web-app-manifest-192x192.png" 
+                                alt="IPlytic Logo" 
+                            class="w-9 h-9 rounded-lg">
+                        </div>
+                        <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">IPlytic</span>
+                    </a>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-primary-500 dark:text-primary-400 font-medium px-1 pb-1 nav-link">Home</a>
+                    <a href="#features" class="text-secondary-600 dark:text-secondary-300 hover:text-secondary-900 dark:hover:text-white font-medium px-1 pb-1 nav-link">Features</a>
+                    <a href="#pricing" class="text-secondary-600 dark:text-secondary-300 hover:text-secondary-900 dark:hover:text-white font-medium px-1 pb-1 nav-link">Pricing</a>
+                    <a href="#contact" class="text-secondary-600 dark:text-secondary-300 hover:text-secondary-900 dark:hover:text-white font-medium px-1 pb-1 nav-link">Contact</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="theme-toggle" class="p-2 rounded-lg text-secondary-500 hover:text-secondary-900 dark:hover:text-white focus:outline-none">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block"></i>
+                    </button>
+                    
+                    <a {% if userInfo %} href="/dashboard" {% else %}  href="/public/signin" {% endif %} class="btn-primary text-white px-4 py-2 rounded-md font-medium">
+                        {% if userInfo %} Dashboard {% else %}  Login {% endif %}
+                    </a>
+                    
+                    <button id="mobile-menu-button" class="md:hidden p-2 rounded-lg text-secondary-500 hover:text-secondary-900 dark:hover:text-white focus:outline-none">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-secondary-800 border-t border-gray-200 dark:border-secondary-700">
+            <div class="px-4 py-4 space-y-3">
+                <a href="/" class="block text-primary-500 dark:text-primary-400 font-medium">Home</a>
+                <a href="#features" class="block text-secondary-600 dark:text-secondary-300 hover:text-secondary-900 dark:hover:text-white font-medium">Features</a>
+                <a href="#pricing" class="block text-secondary-600 dark:text-secondary-300 hover:text-secondary-900 dark:hover:text-white font-medium">Pricing</a>
+                <a href="#contact" class="block text-secondary-600 dark:text-secondary-300 hover:text-secondary-900 dark:hover:text-white font-medium">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-16">
+        <!-- Hero Section -->
+        <section class="hero-bg py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col lg:flex-row items-center justify-between">
+                    <div class="lg:w-1/2 text-center lg:text-left mb-10 lg:mb-0">
+                        <h1 class="text-4xl md:text-5xl font-bold text-secondary-800 dark:text-white mb-6">IP Geolocation <span class="text-primary-500">Analytics</span> API</h1>
+                        <p class="text-xl text-secondary-600 dark:text-secondary-300 mb-8 max-w-2xl">Accurate, fast, and reliable IP geolocation data with global coverage for your applications.</p>
+                        
+                        <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                            <a {% if userInfo %} href="/dashboard" {% else %}  href="/public/signup" {% endif %} class="btn-primary text-white font-medium px-6 py-3 rounded-lg text-center">
+                                Get Started Free
+                            </a>
+                            <a href="#features" class="btn-secondary font-medium px-6 py-3 rounded-lg text-center">
+                                Learn More
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:w-1/2">
+                        <div class="globe-bg p-8 rounded-xl shadow-xl">
+                            <div class="bg-white dark:bg-secondary-800 rounded-xl p-6 shadow-lg">
+                                <h2 class="text-xl font-semibold text-secondary-800 dark:text-white mb-4">Check IP Geolocation</h2>
+                                <form id="ipForm" class="flex flex-col sm:flex-row gap-3">
+                                    <input type="text" id="ipInput" placeholder="Enter IP address (e.g., 8.8.8.8)" class="flex-grow px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-secondary-700 dark:border-secondary-600 dark:placeholder-secondary-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                    <button id="lookUp" type="submit" class="btn-primary text-white font-medium px-6 py-3 rounded-lg">
+                                        <i class="fa-solid fa-search mr-2"></i>Lookup IP
+                                    </button>
+                                </form>
+                                <p class="text-sm text-secondary-500 dark:text-secondary-400 mt-3">Leave empty to check your own IP address</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="max-w-4xl mx-auto my-10 px-4 hidden">
+            <div class="bg-white dark:bg-secondary-800 rounded-xl p-8 shadow-md text-center">
+                <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto mb-4"></div>
+                <p class="text-secondary-600 dark:text-secondary-300">Fetching IP data...</p>
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <section id="resultsContainer" class="max-w-6xl mx-auto my-16 px-4 hidden">
+            <!-- Toggle Button Group -->
+            <div class="flex justify-center mb-8">
+                <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button id="cardViewBtn" class="px-5 py-3 text-sm font-medium text-white bg-primary-500 border border-primary-500 rounded-l-lg hover:bg-primary-600 focus:z-10 focus:ring-2 focus:ring-primary-500 focus:text-white dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-500">
+                        <i class="fa-solid fa-table-cells mr-2"></i>Card View
+                    </button>
+                    <button id="jsonViewBtn" class="px-5 py-3 text-sm font-medium text-secondary-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-2 focus:ring-primary-500 focus:text-primary-700 dark:bg-secondary-700 dark:border-secondary-600 dark:text-white dark:hover:text-white dark:hover:bg-secondary-600 dark:focus:ring-primary-500 dark:focus:text-white">
+                        <i class="fa-solid fa-code mr-2"></i>JSON Response
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card View -->
+            <div id="cardView" class="bg-white dark:bg-secondary-800 rounded-xl overflow-hidden shadow-lg">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold text-secondary-800 dark:text-white mb-6 pb-4 border-b border-gray-200 dark:border-secondary-700">IP Geolocation Details</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">IP Address</h3>
+                                <p class="text-xl font-semibold text-secondary-900 dark:text-white" id="result-ip"></p>
+                                <span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300 mt-1" id="result-version"></span>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">Location</h3>
+                                <a href="#" target="_blank" class="text-lg text-primary-500 dark:text-primary-400 hover:underline" id="result-coordinates">
+                                    <i class="fa-solid fa-location-dot mr-2"></i>
+                                </a>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">Country</h3>
+                                <div class="flex items-center">
+                                    <span class="text-lg font-semibold text-secondary-900 dark:text-white mr-3" id="result-country"></span>
+                                    <span class="inline-flex items-center bg-gray-100 text-gray-800 px-2 py-0.5 text-xs font-semibold rounded dark:bg-secondary-700 dark:text-gray-300" id="result-country-code"></span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">Region & City</h3>
+                                <p class="text-lg text-secondary-900 dark:text-white" id="result-region-city"></p>
+                                <p class="text-sm text-secondary-500 dark:text-secondary-400" id="result-population"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">Continent</h3>
+                                <div class="flex items-center">
+                                    <span class="text-lg text-secondary-900 dark:text-white mr-3" id="result-continent"></span>
+                                    <span class="inline-flex items-center bg-gray-100 text-gray-800 px-2 py-0.5 text-xs font-semibold rounded dark:bg-secondary-700 dark:text-gray-300" id="result-continent-code"></span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">Postal Code</h3>
+                                <p class="text-lg text-secondary-900 dark:text-white" id="result-postal"></p>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">Currency</h3>
+                                <p class="text-lg text-secondary-900 dark:text-white" id="result-currency"></p>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">Languages</h3>
+                                <p class="text-lg text-secondary-900 dark:text-white" id="result-language"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-secondary-700">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">ASN</h3>
+                                <p class="text-lg font-semibold text-secondary-900 dark:text-white" id="result-asn"></p>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide">Organization</h3>
+                                <p class="text-lg text-secondary-900 dark:text-white" id="result-isp"></p>
+                            </div>
+                            
+                            <div class="flex flex-col">
+                                <h3 class="text-sm font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wide mb-2">Network Details</h3>
+                                <div class="flex space-x-2">
+                                    <span class="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 text-xs font-semibold rounded dark:bg-purple-900 dark:text-purple-300" id="result-proxy">
+                                        <i class="fa-solid fa-shield-alt mr-1"></i>
+                                    </span>
+                                    <span class="inline-flex items-center bg-indigo-100 text-indigo-800 px-2 py-1 text-xs font-semibold rounded dark:bg-indigo-900 dark:text-indigo-300" id="result-type">
+                                        <i class="fa-solid fa-network-wired mr-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JSON View -->
+            <div id="jsonView" class="bg-secondary-800 dark:bg-secondary-900 rounded-xl overflow-hidden shadow-lg" style="display: none;">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-white">JSON Response</h2>
+                        <button id="copyJsonBtn" class="btn-primary text-white px-4 py-2 rounded-md text-sm">
+                            <i class="fa-regular fa-copy mr-1"></i> Copy JSON
+                        </button>
+                    </div>
+                    <pre class="bg-secondary-900 p-4 rounded-lg overflow-auto text-green-400 text-sm" style="white-space: pre-wrap; word-wrap: break-word;" id="jsonData"></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="py-16 bg-secondary-50 dark:bg-secondary-900">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="stat-card p-6 text-center">
+                        <div class="w-16 h-16 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-network-wired text-primary-500 text-2xl"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-secondary-800 dark:text-white mb-2">99.9%</div>
+                        <p class="text-secondary-600 dark:text-secondary-300">Uptime</p>
+                    </div>
+                    <div class="stat-card p-6 text-center">
+                        <div class="w-16 h-16 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-gauge-high text-primary-500 text-2xl"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-secondary-800 dark:text-white mb-2">200ms</div>
+                        <p class="text-secondary-600 dark:text-secondary-300">Avg. Response</p>
+                    </div>
+                    <div class="stat-card p-6 text-center">
+                        <div class="w-16 h-16 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-database text-primary-500 text-2xl"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-secondary-800 dark:text-white mb-2">10B+</div>
+                        <p class="text-secondary-600 dark:text-secondary-300">IP Lookups</p>
+                    </div>
+                    <div class="stat-card p-6 text-center">
+                        <div class="w-16 h-16 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-globe text-primary-500 text-2xl"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-secondary-800 dark:text-white mb-2">240+</div>
+                        <p class="text-secondary-600 dark:text-secondary-300">Countries</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Features Section -->
+        <section id="features" class="py-16 bg-white dark:bg-secondary-900">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-secondary-800 dark:text-white mb-4">Powerful IP Geolocation API</h2>
+                    <p class="text-xl text-secondary-600 dark:text-secondary-300 max-w-3xl mx-auto">Access comprehensive geolocation data with our easy-to-integrate API</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="feature-card bg-white dark:bg-secondary-800 p-6 rounded-xl">
+                        <div class="w-14 h-14 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-bolt text-blue-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-secondary-800 dark:text-white mb-3">Lightning Fast</h3>
+                        <p class="text-secondary-600 dark:text-secondary-300">Get IP geolocation data in milliseconds with our globally distributed API endpoints.</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white dark:bg-secondary-800 p-6 rounded-xl">
+                        <div class="w-14 h-14 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-database text-green-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-secondary-800 dark:text-white mb-3">Comprehensive Data</h3>
+                        <p class="text-secondary-600 dark:text-secondary-300">Access country, city, coordinates, timezone, currency, and security data for any IP address.</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white dark:bg-secondary-800 p-6 rounded-xl">
+                        <div class="w-14 h-14 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-shield-alt text-purple-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-secondary-800 dark:text-white mb-3">Secure & Reliable</h3>
+                        <p class="text-secondary-600 dark:text-secondary-300">Enterprise-grade security with 99.9% uptime and dedicated support options.</p>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-12">
+                    <a href="#" class="inline-flex items-center text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
+                        View full API documentation
+                        <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="py-16 bg-secondary-50 dark:bg-secondary-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-secondary-800 dark:text-white mb-4">How Our API Helps You</h2>
+                    <p class="text-xl text-secondary-600 dark:text-secondary-300 max-w-3xl mx-auto">Integrate IP geolocation data to enhance your applications and services</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white dark:bg-secondary-700 p-6 rounded-xl">
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-globe text-blue-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-secondary-800 dark:text-white mb-3">Content Localization</h3>
+                        <p class="text-secondary-600 dark:text-secondary-300">Deliver personalized content based on user location, language, and currency preferences.</p>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-secondary-700 p-6 rounded-xl">
+                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-shield text-green-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-secondary-800 dark:text-white mb-3">Fraud Prevention</h3>
+                        <p class="text-secondary-600 dark:text-secondary-300">Detect suspicious activities by identifying location mismatches and proxy usage.</p>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-secondary-700 p-6 rounded-xl">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-chart-line text-purple-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-secondary-800 dark:text-white mb-3">Analytics & Insights</h3>
+                        <p class="text-secondary-600 dark:text-secondary-300">Gain valuable insights about your user demographics and geographic distribution.</p>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-secondary-700 p-6 rounded-xl">
+                        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-lock text-orange-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-secondary-800 dark:text-white mb-3">Access Control</h3>
+                        <p class="text-secondary-600 dark:text-secondary-300">Restrict or allow access to your services based on geographic locations.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing" class="py-16 bg-white dark:bg-secondary-900">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-secondary-800 dark:text-white mb-4">Simple, Transparent Pricing</h2>
+                    <p class="text-xl text-secondary-600 dark:text-secondary-300 max-w-3xl mx-auto">Choose the plan that works best for your needs. All plans include our core geolocation features.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Starter Plan -->
+                    <div class="pricing-card bg-white dark:bg-secondary-800 rounded-xl p-6">
+                        <h5 class="mb-4 text-xl font-medium text-secondary-500 dark:text-secondary-400">Starter Plan</h5>
+                        <div class="flex items-baseline text-secondary-800 dark:text-white mb-2">
+                            <span class="text-3xl font-semibold">$</span>
+                            <span class="text-5xl font-extrabold tracking-tight">9</span>
+                            <span class="ms-1 text-xl font-normal text-secondary-500 dark:text-secondary-400">/month</span>
+                        </div>
+                        <p class="text-secondary-500 dark:text-secondary-400 mb-6">Perfect for developers and small projects</p>
+                        <ul role="list" class="space-y-4 mb-8">
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">10,000 requests/month</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">Basic geolocation data</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">Email support</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">99.5% Uptime SLA</span>
+                            </li>
+                            <li class="flex items-center text-secondary-400">
+                                <i class="fa-solid fa-xmark mr-3"></i>
+                                <span class="line-through">Advanced analytics</span>
+                            </li>
+                            <li class="flex items-center text-secondary-400">
+                                <i class="fa-solid fa-xmark mr-3"></i>
+                                <span class="line-through">Priority support</span>
+                            </li>
+                        </ul>
+                        <a {% if userInfo %} href="/subscription" {% else %}  href="/public/signin" {% endif %} class="w-full btn-primary text-white font-medium py-3 rounded-lg text-center block">
+                            Get Started
+                        </a>
+                    </div>
+
+                    <!-- Standard Plan -->
+                    <div class="pricing-card bg-white dark:bg-secondary-800 border-2 border-primary-500 rounded-xl p-6 relative">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                            <span class="bg-primary-500 text-white text-xs font-medium px-3 py-1 rounded-full">Most Popular</span>
+                        </div>
+                        <h5 class="mb-4 text-xl font-medium text-primary-500 dark:text-primary-400">Standard Plan</h5>
+                        <div class="flex items-baseline text-secondary-800 dark:text-white mb-2">
+                            <span class="text-3xl font-semibold">$</span>
+                            <span class="text-5xl font-extrabold tracking-tight">29</span>
+                            <span class="ms-1 text-xl font-normal text-secondary-500 dark:text-secondary-400">/month</span>
+                        </div>
+                        <p class="text-secondary-500 dark:text-secondary-400 mb-6">Ideal for growing businesses and applications</p>
+                        <ul role="list" class="space-y-4 mb-8">
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">100,000 requests/month</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">Advanced geolocation data</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">Email & chat support</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">99.9% Uptime SLA</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">Basic analytics dashboard</span>
+                            </li>
+                            <li class="flex items-center text-secondary-400">
+                                <i class="fa-solid fa-xmark mr-3"></i>
+                                <span class="line-through">Dedicated account manager</span>
+                            </li>
+                        </ul>
+                        <a {% if userInfo %} href="/subscription" {% else %}  href="/public/signin" {% endif %} class="w-full btn-primary text-white font-medium py-3 rounded-lg text-center block">
+                            Choose Plan
+                        </a>
+                    </div>
+
+                    <!-- Premium Plan -->
+                    <div class="pricing-card bg-white dark:bg-secondary-800 rounded-xl p-6">
+                        <h5 class="mb-4 text-xl font-medium text-secondary-500 dark:text-secondary-400">Premium Plan</h5>
+                        <div class="flex items-baseline text-secondary-800 dark:text-white mb-2">
+                            <span class="text-3xl font-semibold">$</span>
+                            <span class="text-5xl font-extrabold tracking-tight">99</span>
+                            <span class="ms-1 text-xl font-normal text-secondary-500 dark:text-secondary-400">/month</span>
+                        </div>
+                        <p class="text-secondary-500 dark:text-secondary-400 mb-6">For enterprises with high-volume needs</p>
+                        <ul role="list" class="space-y-4 mb-8">
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">1,000,000+ requests/month</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">Complete geolocation dataset</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">24/7 Priority support</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">99.99% Uptime SLA</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">Advanced analytics dashboard</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fa-solid fa-check text-primary-500 mr-3"></i>
+                                <span class="text-secondary-600 dark:text-secondary-300">Dedicated account manager</span>
+                            </li>
+                        </ul>
+                        <a {% if userInfo %} href="/subscription" {% else %}  href="/public/signin" {% endif %} class="w-full btn-primary text-white font-medium py-3 rounded-lg text-center block">
+                            Contact Sales
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="cta-section p-10 text-center">
+                    <h2 class="text-3xl font-bold text-secondary-800 dark:text-white mb-4">Ready to Get Started?</h2>
+                    <p class="text-xl text-secondary-600 dark:text-secondary-300 mb-8">Start using our IP Geolocation API today with our free tier</p>
+                    <a {% if userInfo %} href="/dashboard" {% else %}  href="/public/signup" {% endif %} class="btn-primary text-white font-medium px-6 py-3 rounded-lg inline-flex items-center justify-center">
+                        <i class="fa-solid fa-rocket mr-2"></i>
+                        Get Started for Free
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-secondary-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <a href="/" class="flex items-center space-x-2">
+                       <div class="w-9 h-9 rounded-lg flex items-center justify-center ">
+                           <img src="{{ env.App_URL }}assets/public/favicon/web-app-manifest-192x192.png" 
+                                alt="IPlytic Logo" 
+                            class="w-9 h-9 rounded-lg">
+                        </div>
+                        <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">IPlytic</span>
+                    </a>
+                    <p class="text-secondary-400 mb-4">Providing accurate IP geolocation data for developers and businesses worldwide.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-secondary-400 hover:text-white">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-secondary-400 hover:text-white">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="text-secondary-400 hover:text-white">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Product</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Features</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Pricing</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">API Documentation</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Status</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Company</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-secondary-400 hover:text-white">About</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Blog</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Careers</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Support</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Documentation</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">Community</a></li>
+                        <li><a href="#" class="text-secondary-400 hover:text-white">FAQs</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-secondary-700 mt-8 pt-8 text-center text-secondary-400">
+                <p>© 2023 IPlytic. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Function to toggle views
+        function toggleView(view) {
+            // Hide all tab content
+            document.getElementById('cardView').style.display = 'none';
+            document.getElementById('jsonView').style.display = 'none';
+            
+            // Show the selected tab content
+            document.getElementById(view + 'View').style.display = 'block';
+            
+            // Update button styles
+            if (view === 'card') {
+                document.getElementById('cardViewBtn').classList.add('text-white', 'bg-primary-500', 'dark:bg-primary-600');
+                document.getElementById('cardViewBtn').classList.remove('text-secondary-900', 'bg-white', 'dark:bg-secondary-700');
+                document.getElementById('jsonViewBtn').classList.add('text-secondary-900', 'bg-white', 'dark:bg-secondary-700');
+                document.getElementById('jsonViewBtn').classList.remove('text-white', 'bg-primary-500', 'dark:bg-primary-600');
+            } else {
+                document.getElementById('jsonViewBtn').classList.add('text-white', 'bg-primary-500', 'dark:bg-primary-600');
+                document.getElementById('jsonViewBtn').classList.remove('text-secondary-900', 'bg-white', 'dark:bg-secondary-700');
+                document.getElementById('cardViewBtn').classList.add('text-secondary-900', 'bg-white', 'dark:bg-secondary-700');
+                document.getElementById('cardViewBtn').classList.remove('text-white', 'bg-primary-500', 'dark:bg-primary-600');
+            }
+        }
+
+        // Copy JSON functionality
+        document.getElementById('copyJsonBtn').addEventListener('click', function() {
+            const jsonText = document.getElementById('jsonData').textContent;
+            navigator.clipboard.writeText(jsonText).then(() => {
+                // Change button text temporarily
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Copied!';
+                setTimeout(() => {
+                    this.innerHTML = originalHtml;
+                }, 2000);
+            });
+        });
+
+        // Smooth scroll to sections
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                if (targetId) {
+                    document.getElementById(targetId).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // IP form submission
+        document.getElementById('ipForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const ip = document.getElementById('ipInput').value.trim();
+            
+            // Show loading indicator
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('resultsContainer').classList.add('hidden');
+            
+            try {
+                // Determine the API URL: if IP is empty, fetch own IP; otherwise, fetch specified IP
+                const apiUrl = ip ? `https://ipwho.is/${ip}` : 'https://ipwho.is/';
+                
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+                
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.message || 'Invalid IP or API error');
+                }
+                
+                // Extract and format the data
+                const geoData = {
+                    ip: data.ip,
+                    ipv: (data.ip.includes(':')) ? 'IPv6' : 'IPv4',
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    country: data.country,
+                    country_code: data.country_code,
+                    city: data.city,
+                    population: data.population || '',  // Not always available
+                    region: data.region,
+                    continent: data.continent,
+                    continent_code: data.continent_code,
+                    postal: data.postal,
+                    asn: data.connection ? `AS${data.connection.asn}` : 'Unknown',
+                    isp: data.connection ? data.connection.isp : 'Unknown',
+                    proxy: data.connection ? (data.connection.proxy ? 'Yes' : 'No') : 'Unknown',
+                    type: data.type || 'Unknown',
+                };
+                const country = {
+                    language: data.languages ? Object.values(data.languages)[0].name : 'Unknown',
+                    currency: data.currency ? `${data.currency.code} (${data.currency.symbol})` : 'Unknown'
+                };
+
+                
+                // Update card view
+                document.getElementById('result-ip').textContent = geoData.ip;
+                document.getElementById('result-version').textContent = geoData.ipv;
+                document.getElementById('result-coordinates').textContent = `${geoData.latitude}, ${geoData.longitude}`;
+                document.getElementById('result-coordinates').href = `https://www.google.com/maps?q=${geoData.latitude},${geoData.longitude}`;
+                document.getElementById('result-country').textContent = geoData.country;
+                document.getElementById('result-country-code').textContent = geoData.country_code;
+                document.getElementById('result-region-city').textContent = `${geoData.region}, ${geoData.city}`;
+                document.getElementById('result-population').textContent = geoData.population ? `Population: ${geoData.population}` : '';
+                document.getElementById('result-continent').textContent = geoData.continent;
+                document.getElementById('result-continent-code').textContent = geoData.continent_code;
+                document.getElementById('result-postal').textContent = geoData.postal;
+                document.getElementById('result-currency').textContent = country.currency;
+                document.getElementById('result-language').textContent = country.language;
+                document.getElementById('result-asn').textContent = geoData.asn;
+                document.getElementById('result-isp').textContent = geoData.isp;
+                document.getElementById('result-proxy').innerHTML = `<i class="fa-solid fa-shield-alt mr-1"></i> Proxy: ${geoData.proxy}`;
+                document.getElementById('result-type').innerHTML = `<i class="fa-solid fa-network-wired mr-1"></i> Type: ${geoData.type}`;
+                
+                // Update JSON view with the full API response
+                document.getElementById('jsonData').textContent = JSON.stringify(data, null, 2);
+                
+                // Hide loading and show results
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('resultsContainer').classList.remove('hidden');
+                
+                // Set default to card view
+                toggleView('card');
+            } catch (error) {
+                // Hide loading and show error
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                alert(`Error: ${error.message}. Please try a valid IP address.`);
+            }
+        });
+
+        // Add event listeners to buttons
+        document.getElementById('cardViewBtn').addEventListener('click', () => toggleView('card'));
+        document.getElementById('jsonViewBtn').addEventListener('click', () => toggleView('json'));
+
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</body>
+</html>
