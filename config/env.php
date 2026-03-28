@@ -16,8 +16,8 @@ $env=array(
 
     //PRODUCTION DATABASE CREDENTIALS
     "DATABASE_HOST"=>"localhost",
-    "DATABASE_NAME"=>"glamourgo",
-    "DATABASE_USERNAME"=>"glamourgo",
+    "DATABASE_NAME"=>"IPlytic",
+    "DATABASE_USERNAME"=>"",
     "DATABASE_PASSWORD"=>"PajM4MNAwi5yrFb4",
 
 
@@ -25,7 +25,7 @@ $env=array(
     "LC_DATABASE_HOST"=>"localhost",
     "LC_DATABASE_NAME"=>"IPlytic",
     "LC_DATABASE_USERNAME"=>"root",
-    "LC_DATABASE_PASSWORD"=>"root",
+    "LC_DATABASE_PASSWORD"=>"",
 
     //SMTP CREDENTIALS
     "SMTP_HOST"=>"128.140.85.24",
